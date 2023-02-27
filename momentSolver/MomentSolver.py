@@ -290,7 +290,7 @@ class MomentSolver:
         # grab the solenoid strength
         komega = self.ksol[index]
         y = self.y # grab adjoint solutions
-        e1 = 1.0 # fitting parameter 1
+        e1 = 0.0 # fitting parameter 1
         e2 = 0.0 # fitting parameter 2
 
         f5_tmp = y[6,index] + 0.5 * komega**2 * y[0,index] - komega * y[9,index]
@@ -389,18 +389,17 @@ class MomentSolver:
         params = None
         df = []
         for i,elem in enumerate(paramsDefault):
-            for elemName in elem:
+            for elemPropName in elem:
                 params = copy.deepcopy(paramsDefault)
-                params[i][elemName] = paramsDefault[i][elemName] + paramsDefault[i][elemName] * pert
+                params[i][elemPropName] = paramsDefault[i][elemPropName] + paramsDefault[i][elemPropName] * pert
                 self.UpdateLattice(params = params)
                 Omat,Nmat = self.CalcON(self.lattice)
-                for ii in range(len(self.z)):
+                for ii in range(len(self.z)):                   
                     Omat[ii] = Omat[ii] - OmatDefault[ii]
                     Nmat[ii] = Nmat[ii] - NmatDefault[ii]  
 
                 tmp = self.CalcInt(Omat, Nmat)
                 df.append(tmp)
-
         return np.array(df)
 
     def CalcON(self, lattice):
@@ -414,7 +413,6 @@ class MomentSolver:
         k_perv = self.kPerv
         r_pipe = self.pipeRadius
         rho = self.rho
-
         for i,z in enumerate(self.z):
             Y = self.y[:,i]
             
@@ -422,7 +420,7 @@ class MomentSolver:
         
             # use bindings to calculate O and N matrices from C++ files
             O_mat[i],N_mat[i] = self.bindings.getONmats(k_perv, k_sol, k_quad, psi, r_pipe, Y)
-
+            
         return O_mat, N_mat
 
     def CalcInt(self, Omat, Nmat):
@@ -438,13 +436,14 @@ class MomentSolver:
 
         y = self.y
         yadj = self.yAdj
-
+        xx = []
         for i in range(len(self.z)):
             int1[i] = np.matmul( yadj[3:6,i], np.matmul(Omat[i], y[0:3,i]) )
             int2[i] = yadj[9,i] * np.matmul( y[0:3,i], Nmat[i] )
             int3[i] = -1 * np.matmul( yadj[0:3,i], np.matmul(Omat[i], y[3:6,i]) )
             int4[i] = -1 * np.matmul( yadj[0:3,i], Nmat[i] * y[9,i] )
 
+        import matplotlib.pyplot as plt
         return np.trapz(int1+int2+int3+int4, self.z)
 
 
@@ -562,3 +561,6 @@ class MomentSolverUtility:
                 Nmat[i+1] = Nm             
                 
         return yout,ksol,kquad,Omat,Nmat
+
+    def printLatticeInfo(self, lattice):
+        pass

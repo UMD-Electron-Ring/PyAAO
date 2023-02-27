@@ -20,11 +20,11 @@ def plotEnvelope(momObj):
 
 def setRestrictions(momObj, paramArray):
 
-    if True:
+    if False:
         for i,param in enumerate(paramArray[0:-1]):
             paramArray[i] = np.clip(param, 0, 10)
 
-    if True:
+    if False:
         #length = 0.12 # 12 cm
         #quad3Center = momObj.lattice[2]['zstart'] * paramArray[6] + momObj.lattice[2]['length'] / 2.0
         #paramArray[9] = (length + quad3Center) / (momObj.latticeDefault[-1]['zstart'])
@@ -42,13 +42,9 @@ def plotParams(params):
     plt.plot(aa)
 
 ###################################
-# Magnet parameters
+# Magnet parameters & Opt parameters
 from systems.bbcFTR.magnetParameters import lattice
-###################################
-
-###################################
-# Opt parameters
-from systems.bbcFTR.optParameters import params,getParamArray,getParamObj
+from systems.bbcFTR.optParameters import params,getParamArray,getParamObj,parammapping
 ###################################
 
 # physics settings
@@ -87,9 +83,9 @@ df_h = [df0]
 
 # initial first step
 an_h.append( an_h[0] - gamma_h[0] * df_h[0] )
-mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
 an_h[-1] = setRestrictions(mom, an_h[-1])
-mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
 mom.Run()
 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
 f_h.append(ftmp)
@@ -101,7 +97,7 @@ while f_h[-1] >= f0:
     gamma_h.append( gamma_h[-1] / 2.0 )
     an_h.append( an_h[0] - gamma_h[-1] * df_h[0] )
     an_h[-1] = setRestrictions(mom, an_h[-1])    
-    mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+    mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
     mom.Run()
     ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
     f_h.append(ftmp)
@@ -120,7 +116,7 @@ try:
             # iterate
             an_h.append( an_h[-1] - gamma_h[-1] * df_h[-1] )       
             an_h[-1] = setRestrictions(mom, an_h[-1])        
-            mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+            mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
             mom.Run()
             ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
             f_h.append(ftmp)
@@ -141,7 +137,7 @@ try:
         fp_h.append( fp_h[-2] )
 
         # calculate adjoint
-        mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+        mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
         mom.Run()
         mom.RunAdjoint()
 
@@ -159,7 +155,7 @@ try:
                 gamma_h.append( gamma_h[-1] / 2.0 )           
                 an_h.append( ann - gamma_h[-1] * df_h[-1] )
                 an_h[-1] = setRestrictions(mom, an_h[-1])            
-                mom.UpdateLattice( params = getParamObj(an_h[-1]) )
+                mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
                 mom.Run()
                 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
                 f_h.append(ftmp)

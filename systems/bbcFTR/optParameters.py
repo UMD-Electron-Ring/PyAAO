@@ -7,17 +7,16 @@ def getParamArray(paramObj):
             arr.append(paramObj[i][elemName])
     return np.array(arr)
 
-def getParamObj(paramArray):
+def getParamObj(paramArray, paramMapping):
     params = []
-    numParam = 3
-    numMags = int(len(paramArray) / numParam)
-    for i in range(numMags):
+    cc = 0
+    for ii,elem in enumerate(paramMapping):
         tmp = {}
-        tmp['zstart'] = paramArray[i*numParam]
-        tmp['rotation'] = paramArray[i*numParam+1]
-        tmp['dbdx'] = paramArray[i*numParam+2]
+        for jj,param in enumerate(elem):
+            tmp[param] = paramArray[cc]
+            cc += 1
         params.append(tmp)
-    return np.array(params)   
+    return np.array(params)     
 
 if False:
     paramarray = np.array([
@@ -69,9 +68,11 @@ if True:
         1.09008688,  
         1.01156225,  
         0.8,         
-        0.99995458, 
         -0.94121212
     ])    
+
+    # order to map param list to param object
+    parammapping = [['zstart','rotation','dbdx'],['zstart','rotation','dbdx'],['zstart','rotation','dbdx'],['zstart','dbdx']]    
 
     quad1 = {}
     quad1['zstart'] = paramarray[0]
@@ -90,8 +91,7 @@ if True:
 
     sol = {}
     sol['zstart'] = paramarray[9]
-    sol['rotation'] = 1.0
-    sol['dbdx'] = paramarray[11]    
+    sol['dbdx'] = paramarray[10]    
 
 params = np.array([ quad1, quad2, quad3, sol])
 
