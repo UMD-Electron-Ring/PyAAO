@@ -63,7 +63,14 @@ if False:
 
 # run with only magnet strength, no movement or rotations
 if False:
-    paramarray = np.ones(4)  
+    paramarray = np.ones(4) 
+
+    paramarray = np.array([
+        1.02086247, 
+        1.03050807, 
+        1.02404281, 
+        0.97240616,
+        ]) 
 
     # order to map param list to param object
     #parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
@@ -85,16 +92,20 @@ if False:
     sol['dbdx'] = paramarray[3]
 
 # run with magnet strength and rotations, no movement
-if True:
+if False:
     paramarray = np.array([
-        1.0,
-        1.02035703, 
-        1.0,
-        1.03109128, 
-        1.0,
-        1.02559988, 
-        0.99755865
-    ])
+        1.03980134, 
+        1.10362798, 
+        0.99803625, 
+        1.06436912, 
+        1.00889097, 
+        1.02682633,
+        0.97279436])
+
+    #[1.03295908 1.04032733 1.02197807 1.04688933 1.01706542 1.03425943 0.99670053]    
+
+    # 3 mA
+    #[1.08644173 1.25569886 0.99908952 1.14673349 1.01993958 1.05985367 0.95058752]    
 
     # order to map param list to param object
     #parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
@@ -115,10 +126,58 @@ if True:
     sol = {}
     sol['dbdx'] = paramarray[6]    
 
+# run with magnet strength and rotations, no movement except solenoid
 if False:
+    paramarray = np.array([
+        1.03874183, 
+        1.09468714, 
+        1.00122305, 
+        1.06176196, 
+        1.01008171, 
+        1.02750761,
+        1.0,
+        0.97421808
+        ])        
 
+    #[1.03295908 1.04032733 1.02197807 1.04688933 1.01706542 1.03425943 0.99670053]    
+
+    # order to map param list to param object
+    #parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
+    parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['zstart', 'dbdx']]
+
+    quad1 = {}
+    quad1['rotation'] = paramarray[0]
+    quad1['dbdx'] = paramarray[1]
+
+    quad2 = {}
+    quad2['rotation'] = paramarray[2]
+    quad2['dbdx'] = paramarray[3]
+
+    quad3 = {}
+    quad3['rotation'] = paramarray[4]
+    quad3['dbdx'] = paramarray[5]
+
+    sol = {}
+    sol['zstart'] = paramarray[6]  
+    sol['dbdx'] = paramarray[7]    
+
+if True:
+
+    paramarray = np.array([
+        1.0,
+        1.08644173, 
+        1.25569886, 
+        1.0,
+        0.99908952, 
+        1.14673349, 
+        1.0,
+        1.01993958, 
+        1.05985367, 
+        1.0,
+        0.95058752
+        ])
+    
     paramarray = np.ones(11)
-    paramarray[-1] = -1.0
 
     # order to map param list to param object
     parammapping = [['zstart','rotation','dbdx'],['zstart','rotation','dbdx'],['zstart','rotation','dbdx'],['zstart','dbdx']]      

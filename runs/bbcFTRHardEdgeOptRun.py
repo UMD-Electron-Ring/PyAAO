@@ -11,7 +11,7 @@ def plotEnvelope(momObj):
     plt.figure()
     plt.plot(momObj.z,xr, label='$<x^2>$')
     plt.plot(momObj.z,yr, label='$<y^2>$')
-    plt.plot(momObj.z,momObj.ksol * -3e-6, color='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
+    plt.plot(momObj.z,momObj.ksol * 3e-6, color='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
     plt.plot(momObj.z,momObj.kquad * 1e-7, color='k') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
     plt.grid(True)
     plt.xlabel('Z position [m]')
@@ -19,16 +19,15 @@ def plotEnvelope(momObj):
     plt.legend()
 
 def setRestrictions(momObj, paramArray):
-
     if False:
         for i,param in enumerate(paramArray[0:-1]):
             paramArray[i] = np.clip(param, 0, 10)
 
     if False:
-        #length = 0.12 # 12 cm
-        #quad3Center = momObj.lattice[2]['zstart'] * paramArray[6] + momObj.lattice[2]['length'] / 2.0
-        #paramArray[9] = (length + quad3Center) / (momObj.latticeDefault[-1]['zstart'])
-        paramArray[9] = 0.8
+        length = 0.12 # 12 cm
+        quad3Center = momObj.lattice[2]['zstart'] * paramArray[6] + momObj.lattice[2]['length'] / 2.0
+        paramArray[9] = (length + quad3Center) / (momObj.latticeDefault[-1]['zstart'])
+        #paramArray[9] = 0.8
         #print( "POS: " + str(quad3Center) + "|" + str(paramArray[9] * momObj.lattice[3]['zstart']) )
 
     return paramArray
@@ -59,7 +58,7 @@ initCond = GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
-current = 1.0e-3 # Amps
+current = 3.0e-3 # Amps
 pipeRadius = 0.0 # meters , for image charges effect on pipe walls
 
 # sim parameters
@@ -187,7 +186,7 @@ try:
         if ( f_h[-1] < 1e-14 ):
             break
 
-        if ( len(f_h) > 1000 ):
+        if ( len(f_h) > 5000 ):
             break
 
         if ( ii == 1 ):

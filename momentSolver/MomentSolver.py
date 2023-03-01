@@ -290,7 +290,7 @@ class MomentSolver:
         # grab the solenoid strength
         komega = self.ksol[index]
         y = self.y # grab adjoint solutions
-        e1 = 0.0 # fitting parameter 1
+        e1 = 1.0 # fitting parameter 1
         e2 = 0.0 # fitting parameter 2
 
         f5_tmp = y[6,index] + 0.5 * komega**2 * y[0,index] - komega * y[9,index]
@@ -420,7 +420,7 @@ class MomentSolver:
         
             # use bindings to calculate O and N matrices from C++ files
             O_mat[i],N_mat[i] = self.bindings.getONmats(k_perv, k_sol, k_quad, psi, r_pipe, Y)
-            
+
         return O_mat, N_mat
 
     def CalcInt(self, Omat, Nmat):
@@ -446,7 +446,11 @@ class MomentSolver:
         import matplotlib.pyplot as plt
         return np.trapz(int1+int2+int3+int4, self.z)
 
-
+    def PrintLattice(self):
+        '''
+        Nicely print out lattice parameters
+        '''
+        pass
 class MomentSolverUtility:
     '''
     Helper class with some utilities used within the MomentSolver class.

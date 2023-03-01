@@ -48,7 +48,7 @@ sol['zstart'] = (1.8573 - leffSolenoid/2.0) - offset
 sol['length'] = leffSolenoid # m
 sol['zend'] = sol['zstart'] + sol['length']
 sol['rotation'] = 0.0 # doesn't do anything
-sol['dbdx'] = SolenoidProfile( lambda s,I : -soldb )
+sol['dbdx'] = SolenoidProfile( lambda s,I : soldb )
 
 lattice = np.array([ quad1, quad2, quad3, sol ])
 ###################################
