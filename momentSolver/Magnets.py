@@ -9,6 +9,11 @@ class QuadProfile:
         if self.hardedge:
             return "QuadProfile, dbdx[T/m]: " + str(self.GetValue(0))
         return "QuadProfile" 
+    
+    def __repr(self):
+        if self.hardedge:
+            return "QuadProfile, dbdx[T/m]: " + str(self.GetValue(0))
+        return "QuadProfile"    
 
     def __str__(self):
         return self.__repr()
@@ -30,6 +35,11 @@ class SolenoidProfile:
         if self.hardedge:
             return "SolenoidProfile, B[T]: " + str(self.GetValue(0))
         return "SolenoidProfile"
+    
+    def __repr(self):
+        if self.hardedge:
+            return "SolenoidProfile, B[T]: " + str(self.GetValue(0))
+        return "SolenoidProfile"    
 
     def __str__(self):
         return self.__repr()      

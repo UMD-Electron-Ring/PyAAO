@@ -13,7 +13,7 @@ q3dbdx = -0.017229 # T / m
 soldb = 6.85 * 1e-4 # T
 leff = 0.05164 # meters
 leffHalf = leff / 2.0 # meters
-leffSolenoid = 1.37 # length of solenoid , doesn't have to be super long here, we are optimizing up to the entrance of a solenoid, so can be short
+leffSolenoid = 1.37*1.0 # length of solenoid , doesn't have to be super long here, we are optimizing up to the entrance of a solenoid, so can be short
 offset = (0.6941 - leffHalf) - 0.00425 # meters
 q1start = 0.6941 - offset
 

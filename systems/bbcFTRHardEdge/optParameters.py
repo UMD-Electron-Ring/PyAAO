@@ -127,55 +127,39 @@ if False:
     sol['dbdx'] = paramarray[6]    
 
 # run with magnet strength and rotations, no movement except solenoid
-if False:
+if True:
     paramarray = np.array([
-        1.03874183, 
-        1.09468714, 
-        1.00122305, 
-        1.06176196, 
-        1.01008171, 
-        1.02750761,
-        1.0,
-        0.97421808
-        ])        
+        1.06700521, 
+        1.19518164, 
+        0.99439876, 
+        1.1122049,  
+        1.01345775, 
+        1.04320169,
+        0.95774436
+    ])        
 
     #[1.03295908 1.04032733 1.02197807 1.04688933 1.01706542 1.03425943 0.99670053]    
+    #[1.12394992 1.27467979 1.03634494 1.1696602  1.05025807 1.10642427 0.94499498]
 
     # order to map param list to param object
     #parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
-    parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['zstart', 'dbdx']]
+    parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
 
-    quad1 = {}
-    quad1['rotation'] = paramarray[0]
-    quad1['dbdx'] = paramarray[1]
-
-    quad2 = {}
-    quad2['rotation'] = paramarray[2]
-    quad2['dbdx'] = paramarray[3]
-
-    quad3 = {}
-    quad3['rotation'] = paramarray[4]
-    quad3['dbdx'] = paramarray[5]
-
-    sol = {}
-    sol['zstart'] = paramarray[6]  
-    sol['dbdx'] = paramarray[7]    
-
-if True:
+if False:
 
     paramarray = np.array([
-        1.0,
-        1.08644173, 
-        1.25569886, 
-        1.0,
-        0.99908952, 
-        1.14673349, 
-        1.0,
-        1.01993958, 
-        1.05985367, 
-        1.0,
-        0.95058752
-        ])
+        1.00067974, 
+        1.02192697, 
+        1.01120623, 
+        1.06126934, 
+        1.01383525, 
+        1.04485096,
+        1.02811584, 
+        1.00306504, 
+        1.00029057,
+        0.9774864,  
+        0.99896648
+    ])
     
     paramarray = np.ones(11)
 
@@ -201,4 +185,4 @@ if True:
     sol['zstart'] = paramarray[9]
     sol['dbdx'] = paramarray[10]      
 
-params = np.array([ quad1, quad2, quad3, sol])
+params = getParamObj(paramarray, parammapping)

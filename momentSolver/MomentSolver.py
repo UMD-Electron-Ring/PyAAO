@@ -9,14 +9,17 @@ class MomentSolver:
     Solves the moment equations
     '''
 
-    def __init__(self, lattice=None, energy=5e3, current=0.0, pipeRadius=0.0, zInterval=(0.0, 0.322), stepSize=0.0001):
+    def __init__(self, lattice=None, energy=5e3, current=0.0, pipeRadius=0.0, zInterval=(0.0, 0.322), stepSize=0.0001, initialConditions=None, ):
         '''
         energy [eV]
         current [A]
         pipeRadius [m]
         zInterval [m,m]
         '''
-        self.initialMoments = self.GetInitialMoments()
+        if initialConditions is None:
+            self.initialMoments = self.GetInitialMoments()
+        else:
+            self.initialMoments = initialConditions
         self.energy = energy
         self.current = current
         self.pipeRadius = pipeRadius
@@ -290,7 +293,7 @@ class MomentSolver:
         # grab the solenoid strength
         komega = self.ksol[index]
         y = self.y # grab adjoint solutions
-        e1 = 1.0 # fitting parameter 1
+        e1 = 0.8 # fitting parameter 1
         e2 = 0.0 # fitting parameter 2
 
         f5_tmp = y[6,index] + 0.5 * komega**2 * y[0,index] - komega * y[9,index]

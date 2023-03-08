@@ -24,7 +24,7 @@ zInterval = (0, 0.7) # meters
 stepSize = 0.0001 # step size
 
 mom = MomentSolver(lattice, energy=energy, current=current, pipeRadius=pipeRadius, zInterval=zInterval, stepSize=stepSize)
-mom.UpdateLattice(params = params)
+#mom.UpdateLattice(params = params)
 mom.initialMoments = initCond
 
 z, y, ksol, kquad = mom.Run(verbose=True)
