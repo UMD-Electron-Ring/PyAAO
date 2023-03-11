@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from momentSolver.MomentSolver import MomentSolver,MomentSolverUtility
 from momentSolver.PlottingUtility import PlottingUtility
-# Magnet parameters & Opt parameters
-from systems.bbcMatchingAndFTRHardEdge.magnetParameters import lattice
+
+# Magnet parameters
+from systems.bbcLongFTRHardEdge.magnetParameters import lattice
 
 msu = MomentSolverUtility()
 pu = PlottingUtility()

@@ -35,7 +35,6 @@ class MomentSolver:
         # c++ bindings
         self.bindings = AdjointFTR()
         
-
     def GetInitialMoments(self):
         '''
         return starting conditions for the moment equations (based off Santiago's values)
@@ -293,7 +292,7 @@ class MomentSolver:
         # grab the solenoid strength
         komega = self.ksol[index]
         y = self.y # grab adjoint solutions
-        e1 = 0.8 # fitting parameter 1
+        e1 = 1.0 # fitting parameter 1
         e2 = 0.0 # fitting parameter 2
 
         f5_tmp = y[6,index] + 0.5 * komega**2 * y[0,index] - komega * y[9,index]
@@ -508,7 +507,7 @@ class MomentSolverUtility:
 
         return k_sol, k_quad, psi        
 
-    def ode3(self,F,t0,h,tfinal,y0,verbose=False):
+    def ode3(self, F,t0,h,tfinal,y0,verbose=False):
         '''
         third order classical Runge-Kutta ODE solver
         '''
@@ -569,5 +568,50 @@ class MomentSolverUtility:
                 
         return yout,ksol,kquad,Omat,Nmat
 
+    # initial beam conditions from courant snyder parameters
+    def GetInitialConditions(self, betax, betay, alphax, alphay, emitx, emity):
+        xrms = np.sqrt(betax * emitx)
+        yrms = np.sqrt(betay * emity)
+        Q_plus = 0.5*(xrms**2 + yrms**2)
+        Q_minus = 0.5*(xrms**2 - yrms**2)
+        Q_x = 0.0
+        P_plus = (-alphax - alphay)
+        P_minus = (-alphax + alphay)
+        P_x = 0
+        E_plus = 0.5 * ( 2*(emitx**2 + 0.25 * (P_plus + P_minus)**2)/(Q_plus + Q_minus) + 2*(emity**2 + 0.25 * (P_plus - P_minus)**2)/(Q_plus - Q_minus) )
+        E_minus = 0.5 * ( 2*(emitx**2 + 0.25 * (P_plus + P_minus)**2)/(Q_plus + Q_minus) - 2*(emity**2 + 0.25 * (P_plus - P_minus)**2)/(Q_plus - Q_minus) )
+        E_x = 0
+        L = 0
+        phi = 0
+        return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])
+
     def printLatticeInfo(self, lattice):
         pass
+
+class OptimizationUtility:
+    '''
+    Helper class for running optimizations
+    '''
+
+    def __init__(self):
+        pass
+
+    # get optimization parameter array from an param object
+    def getParamArray(self, paramObj):
+        arr = []
+        for i,elem in enumerate(paramObj):
+            for elemName in elem:
+                arr.append(paramObj[i][elemName])
+        return np.array(arr)
+
+    # get optimization parameter object from array and param mapping
+    def getParamObj(self, paramArray, paramMapping):
+        params = []
+        cc = 0
+        for ii,elem in enumerate(paramMapping):
+            tmp = {}
+            for jj,param in enumerate(elem):
+                tmp[param] = paramArray[cc]
+                cc += 1
+            params.append(tmp)
+        return np.array(params)

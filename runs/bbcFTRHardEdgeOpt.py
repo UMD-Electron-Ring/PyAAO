@@ -1,24 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from momentSolver.MomentSolver import MomentSolver
+from momentSolver.MomentSolver import MomentSolver,OptimizationUtility,MomentSolverUtility
+from momentSolver.PlottingUtility import PlottingUtility
+# Magnet parameters & Opt parameters
+from systems.bbcFTRHardEdge.magnetParameters import lattice
+from systems.bbcFTRHardEdge.optParameters import params,parammapping
 
-def plotEnvelope(momObj):
-    '''
-    Quickly written helpful function that plots some useful results
-    '''
-    xr = momObj.y[0,:] + momObj.y[1,:] #  <x^2> = Q+ + Q-
-    yr = momObj.y[0,:] - momObj.y[1,:] #  <y^2> = Q+ - Q-
-    plt.figure()
-    plt.plot(momObj.z,xr, label='$<x^2>$')
-    plt.plot(momObj.z,yr, label='$<y^2>$')
-    plt.plot(momObj.z,momObj.ksol * 3e-6, color='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
-    plt.plot(momObj.z,momObj.kquad * 1e-7, color='k') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
-    plt.grid(True)
-    plt.xlabel('Z position [m]')
-    plt.ylabel('Moments [m]')
-    plt.legend()
+msu = MomentSolverUtility()
+ou = OptimizationUtility()
+pu = PlottingUtility()
 
 def setRestrictions(momObj, paramArray):
+
+    if True:
+        paramArray[-1] = np.clip(paramArray[-1],1,10)
     if False:
         for i,param in enumerate(paramArray[0:-1]):
             paramArray[i] = np.clip(param, 0, 10)
@@ -32,21 +27,6 @@ def setRestrictions(momObj, paramArray):
 
     return paramArray
 
-def plotParams(params):
-    aa = np.zeros(( len(params),len(params[0]) ))
-    for i,param in enumerate(params):
-        aa[i,:] = param
-    
-    plt.figure()
-    plt.plot(aa)
-
-###################################
-# Magnet parameters & Opt parameters
-from systems.bbcFTRHardEdge.magnetParameters import lattice
-# Opt parameters
-from systems.bbcFTRHardEdge.optParameters import params,GetInitialConditions,getParamArray,getParamObj,parammapping
-###################################
-
 # FoM to use
 useFoMForMatching = False
 
@@ -54,28 +34,29 @@ useFoMForMatching = False
 betax,betay = 0.698,0.698
 alphax,alphay = 0,0
 emitx,emity = 53e-6,5.3e-6
-initCond = GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
+initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
-current = 3.0e-3 # Amps
+current = 0.0e-3 # Amps
 pipeRadius = 0.0 # meters , for image charges effect on pipe walls
 
 # sim parameters
-zInterval = (0, 0.622)
+zInterval = (0, 1.36)
 stepSize = 0.0001
 
 print('Setting up initial lattice')
 mom = MomentSolver(lattice, energy=energy, current=current, pipeRadius=pipeRadius, zInterval=zInterval, stepSize=stepSize)
 mom.initialMoments = initCond
 mom.UpdateLattice(params = params)
+pu.printLattice(mom)
 
 # plot initial stuff
 mom.Run()
-plotEnvelope(mom)
-mom.zInterval = (0, 1.622)
+pu.PlotEnv(mom)
+mom.zInterval = (0, 2.5)
 mom.Run()
-plotEnvelope(mom)
+pu.PlotEnv(mom)
 mom.zInterval = zInterval
 
 # run moments and adjoint equations
@@ -92,7 +73,7 @@ gamma = f0 / np.sum( df0**2 )
 print('Starting FoM: ' + str(f0))
 
 # opt history
-an_h = [getParamArray(params)]
+an_h = [ou.getParamArray(params)]
 gamma_h = [gamma]
 f_h = [f0]
 fp_h = [f0p]
@@ -100,9 +81,9 @@ df_h = [df0]
 
 # initial first step
 an_h.append( an_h[0] - gamma_h[0] * df_h[0] )
-mom.UpdateLattice( params = getParamObj(an_h[-1],parammapping) )
+mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
 an_h[-1] = setRestrictions(mom, an_h[-1])
-mom.UpdateLattice( params = getParamObj(an_h[-1],parammapping) )
+mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
 mom.Run()
 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
 f_h.append(ftmp)
@@ -114,7 +95,7 @@ while f_h[-1] >= f0:
     gamma_h.append( gamma_h[-1] / 2.0 )
     an_h.append( an_h[0] - gamma_h[-1] * df_h[0] )
     an_h[-1] = setRestrictions(mom, an_h[-1])    
-    mom.UpdateLattice( params = getParamObj(an_h[-1],parammapping) )
+    mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
     mom.Run()
     ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
     f_h.append(ftmp)
@@ -133,7 +114,7 @@ try:
             # iterate
             an_h.append( an_h[-1] - gamma_h[-1] * df_h[-1] )       
             an_h[-1] = setRestrictions(mom, an_h[-1])        
-            mom.UpdateLattice( params = getParamObj(an_h[-1],parammapping) )
+            mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
             mom.Run()
             ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
             f_h.append(ftmp)
@@ -154,7 +135,7 @@ try:
         fp_h.append( fp_h[-2] )
 
         # calculate adjoint
-        mom.UpdateLattice( params = getParamObj(an_h[-1],parammapping) )
+        mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
         mom.Run()
         mom.RunAdjoint(useMatchFoM=useFoMForMatching)
 
@@ -172,7 +153,7 @@ try:
                 gamma_h.append( gamma_h[-1] / 2.0 )           
                 an_h.append( ann - gamma_h[-1] * df_h[-1] )
                 an_h[-1] = setRestrictions(mom, an_h[-1])            
-                mom.UpdateLattice( params = getParamObj(an_h[-1], parammapping) )
+                mom.UpdateLattice( params = ou.getParamObj(an_h[-1], parammapping) )
                 mom.Run()
                 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
                 f_h.append(ftmp)
@@ -186,7 +167,7 @@ try:
         if ( f_h[-1] < 1e-14 ):
             break
 
-        if ( len(f_h) > 5000 ):
+        if ( len(f_h) > 50000 ):
             break
 
         if ( ii == 1 ):
@@ -195,13 +176,13 @@ except KeyboardInterrupt:
     pass
 
 print(an_h[-1])
-mom.lattice
+pu.printLattice(mom)
 
 # plot  stuff
-plotEnvelope(mom)
-mom.zInterval = (0, 1.622)
+pu.PlotEnv(mom)
+mom.zInterval = (0, 2.5)
 mom.Run()
-plotEnvelope(mom)
+pu.PlotEnv(mom)
 mom.zInterval = zInterval
 
 plt.show()
