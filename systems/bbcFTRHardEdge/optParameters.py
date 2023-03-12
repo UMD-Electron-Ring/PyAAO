@@ -31,11 +31,12 @@ if False:
 
 # run with only magnet strength, no movement or rotations
 if True:
-    paramarray = np.ones(4) 
+    paramarray = np.ones(5) 
 
     paramarray = np.array([
         1.00920768, 
         1.01666039, 
+        1.0,
         1.03008797, 
         0.9948411, 
         1.0
@@ -43,7 +44,7 @@ if True:
 
     # order to map param list to param object
     #parammapping = [['rotation','dbdx'],['rotation','dbdx'],['rotation','dbdx'],['dbdx']]
-    parammapping = [['dbdx'],['dbdx','zstart'],['dbdx'],['dbdx', 'zstart']]
+    parammapping = [['dbdx'],['dbdx','zstart'],['dbdx'],['dbdx','zstart']]
 
     quad1 = {}
     quad1['dbdx'] = paramarray[0]

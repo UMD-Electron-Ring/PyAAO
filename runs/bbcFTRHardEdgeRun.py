@@ -17,11 +17,11 @@ initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
-current = 0.0e-3 # Amps
+current = 5.0e-3 # Amps
 pipeRadius = 0.0 # meters
 
 # sim parameters
-zInterval = (0, 2.622) # meters
+zInterval = (0, 1.622) # meters
 stepSize = 0.0001 # step size
 
 mom = MomentSolver(

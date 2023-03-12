@@ -13,7 +13,14 @@ pu = PlottingUtility()
 def setRestrictions(momObj, paramArray):
 
     if True:
-        paramArray[-1] = np.clip(paramArray[-1],1,10)
+        q3start = 2 * paramArray[2] * mom.latticeDefault[1]['zstart'] - mom.latticeDefault[0]['zstart']
+        mom.lattice[2]['zstart'] = q3start
+        mom.lattice[2]['zend'] = q3start + mom.latticeDefault[2]['length']
+
+    if True:
+        if ( paramArray[5] * mom.latticeDefault[3]['zstart'] - mom.lattice[2]['zend'] < 0.18 ):
+            paramArray[5] = (0.18 + mom.lattice[2]['zend']) / mom.latticeDefault[3]['zstart']
+
     if False:
         for i,param in enumerate(paramArray[0:-1]):
             paramArray[i] = np.clip(param, 0, 10)
@@ -25,7 +32,7 @@ def setRestrictions(momObj, paramArray):
         #paramArray[9] = 0.8
         #print( "POS: " + str(quad3Center) + "|" + str(paramArray[9] * momObj.lattice[3]['zstart']) )
 
-    return paramArray
+    return paramArray, momObj
 
 # FoM to use
 useFoMForMatching = False
@@ -38,11 +45,11 @@ initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
-current = 0.0e-3 # Amps
+current = 3.0e-3 # Amps
 pipeRadius = 0.0 # meters , for image charges effect on pipe walls
 
 # sim parameters
-zInterval = (0, 1.36)
+zInterval = (0, 0.722)
 stepSize = 0.0001
 
 print('Setting up initial lattice')
@@ -82,7 +89,7 @@ df_h = [df0]
 # initial first step
 an_h.append( an_h[0] - gamma_h[0] * df_h[0] )
 mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
-an_h[-1] = setRestrictions(mom, an_h[-1])
+an_h[-1],mom = setRestrictions(mom, an_h[-1])
 mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
 mom.Run()
 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
@@ -94,7 +101,7 @@ print('FoM: ' + str(f_h[-1]))
 while f_h[-1] >= f0:
     gamma_h.append( gamma_h[-1] / 2.0 )
     an_h.append( an_h[0] - gamma_h[-1] * df_h[0] )
-    an_h[-1] = setRestrictions(mom, an_h[-1])    
+    an_h[-1],mom = setRestrictions(mom, an_h[-1])    
     mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
     mom.Run()
     ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
@@ -113,7 +120,7 @@ try:
 
             # iterate
             an_h.append( an_h[-1] - gamma_h[-1] * df_h[-1] )       
-            an_h[-1] = setRestrictions(mom, an_h[-1])        
+            an_h[-1],mom = setRestrictions(mom, an_h[-1])
             mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
             mom.Run()
             ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
@@ -152,7 +159,7 @@ try:
             while f_h[-1] >= f0n:
                 gamma_h.append( gamma_h[-1] / 2.0 )           
                 an_h.append( ann - gamma_h[-1] * df_h[-1] )
-                an_h[-1] = setRestrictions(mom, an_h[-1])            
+                an_h[-1],mom = setRestrictions(mom, an_h[-1])            
                 mom.UpdateLattice( params = ou.getParamObj(an_h[-1], parammapping) )
                 mom.Run()
                 ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
@@ -175,7 +182,10 @@ try:
 except KeyboardInterrupt:
     pass
 
+
 print(an_h[-1])
+an_h[-1],mom = setRestrictions(mom, an_h[-1])
+mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
 pu.printLattice(mom)
 
 # plot  stuff
