@@ -17,7 +17,7 @@ initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
-current = 5.0e-3 # Amps
+current = 3.0e-3 # Amps
 pipeRadius = 0.0 # meters
 
 # sim parameters

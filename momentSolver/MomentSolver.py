@@ -471,7 +471,7 @@ class MomentSolverUtility:
         Energy    = energy # eV
         c         = 2.997924E8 # m/s
 
-        gamma     = 1+((Energy)/(510998.9461));
+        gamma     = 1+((Energy)/(510998.9461))
         beta      = np.sqrt((gamma*gamma)-1)/gamma
         v         = beta*c
         bg        = beta*gamma

@@ -12,12 +12,12 @@ pu = PlottingUtility()
 
 def setRestrictions(momObj, paramArray):
 
-    if True:
+    if False:
         q3start = 2 * paramArray[2] * mom.latticeDefault[1]['zstart'] - mom.latticeDefault[0]['zstart']
         mom.lattice[2]['zstart'] = q3start
         mom.lattice[2]['zend'] = q3start + mom.latticeDefault[2]['length']
 
-    if True:
+    if False:
         if ( paramArray[5] * mom.latticeDefault[3]['zstart'] - mom.lattice[2]['zend'] < 0.18 ):
             paramArray[5] = (0.18 + mom.lattice[2]['zend']) / mom.latticeDefault[3]['zstart']
 

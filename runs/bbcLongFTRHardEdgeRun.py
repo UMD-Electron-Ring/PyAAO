@@ -16,7 +16,7 @@ emitx,emity = 53e-6,5.3e-6
 initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
-energy = 5e3 # eV
+energy = 5e3 # eV # 5000eV or 5keV or 0.005MeV
 current = 0.0e-3 # Amps
 pipeRadius = 0.0 # meters
 
