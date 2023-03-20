@@ -93,7 +93,7 @@ class PlottingUtility:
             lattice = momObj.lattice
 
         table = []
-        for elem in momObj.lattice:
+        for elem in lattice:
             entry = [
                 elem['type'],
                 elem['zstart'],
