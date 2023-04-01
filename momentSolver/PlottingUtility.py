@@ -13,7 +13,7 @@ class PlottingUtility:
         self.momObj = momObj
 
 
-    def PlotEnv(self, momObj=None):
+    def PlotEnv(self, momObj=None, title=None):
         '''
         Plot beam envelope 
         '''
@@ -34,6 +34,7 @@ class PlottingUtility:
         plt.xlabel('Z [m]')
         plt.ylabel('Beam size [mm]')
         plt.grid(True)
+        plt.title(title)
         plt.legend()
 
     def plotParams(self, params):
