@@ -584,6 +584,21 @@ class MomentSolverUtility:
         L = 0
         phi = 0
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])
+    
+    # initial beam conditions from moments (usually given from Warp)
+    def GetInitialConditionsFromWarp(self, x2, xp2, y2, yp2, xy, xxp, yyp, xyp, yxp, xpyp):
+        Q_plus = 0.5*(x2 + y2)
+        Q_minus = 0.5*(x2 - y2)
+        Q_x = xy
+        P_plus = xxp + yyp
+        P_minus = xxp - yyp
+        P_x = yxp + xyp
+        E_plus = xp2 + yp2
+        E_minus = xp2 - yp2
+        E_x = 2.0 * xpyp
+        L = xyp - yxp
+        phi = 0
+        return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])        
 
     def printLatticeInfo(self, lattice):
         pass
@@ -593,8 +608,8 @@ class OptimizationUtility:
     Helper class for running optimizations
     '''
 
-    def __init__(self):
-        pass
+    def __init__(self, restFunc=None):
+        self.restFunc = restFunc
 
     # get optimization parameter array from an param object
     def getParamArray(self, paramObj):
@@ -615,3 +630,120 @@ class OptimizationUtility:
                 cc += 1
             params.append(tmp)
         return np.array(params)
+    
+    # take a step in the optimization
+    def takeStep(self, mom, an0, gamma0, df0, pmapping):
+        anNew = an0 - gamma0 * df0
+        if( self.restFunc ):
+            anNew, mom = self.restFunc(mom, anNew)
+        mom.UpdateLattice( params = self.getParamObj(anNew,pmapping) )
+        mom.Run()         
+        ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
+        return mom, anNew, ftmp, fptmp    
+
+    def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000):
+        # run moments and adjoint equations
+        print('Running Mom. Eqn.')
+        mom.Run()
+        mom.RunAdjoint(useMatchFoM=False)
+
+        # get FoM
+        print('Starting Opt.')
+        f0,f0p,_ = mom.GetFoM_And_DFoM()
+        df0 = mom.GetDF()
+        gamma = f0 / np.sum( df0**2 )
+        print('Starting FoM: ' + str(f0))
+
+        # opt history
+        an_h = [self.getParamArray(params0)]
+        gamma_h = [gamma]
+        f_h = [f0]
+        fp_h = [f0p]
+        df_h = [df0]
+
+        # initial first step
+        mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[0], df_h[0], paramMapping)
+        an_h.append(antmp)
+        f_h.append(ftmp)
+        fp_h.append(fptmp)
+        print('FoM: ' + str(f_h[-1]))
+
+        # find the starting gamma value
+        while f_h[-1] >= f0:
+            gamma_h.append( gamma_h[-1] / 2.0 )
+            mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
+            an_h.append(antmp)
+            f_h.append(ftmp)
+            fp_h.append(fptmp)
+            print('FoM: ' + str(f_h[-1]))    
+
+        # main loop 
+        try:
+            while True:
+
+                # step
+                ii=1
+                while f_h[-1] < f_h[-2]:
+                    print('Iterating ' + str(ii))
+
+                    # iterate
+                    mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[-1], gamma_h[-1], df_h[-1], paramMapping)
+                    an_h.append(antmp)
+                    f_h.append(ftmp)
+                    fp_h.append(fptmp)
+                    print('FoM: ' + str(f_h[-1]))
+                    ii += 1
+
+                    # if we have done 20 steps in a row, start increasing the step size
+                    if( ii > 20 ):
+                        gamma_h.append( gamma_h[-1] * 2.0 )
+
+                # can't step anymore, recompute adjoint
+                print('Recomputing Adjoint Equations')
+
+                # grab last good setting
+                an_h.append( an_h[-2] )
+                f_h.append( f_h[-2] )
+                fp_h.append( fp_h[-2] )
+
+                # calculate adjoint
+                mom.UpdateLattice( params = self.getParamObj(an_h[-1],paramMapping) )
+                mom.Run()
+                mom.RunAdjoint(useMatchFoM=False)
+
+                # calculate df
+                df_h.append( mom.GetDF() )
+
+                # no improvement from last step, try to update gamma
+                if( ii == 2 ):
+                    print('Updating Gamma')
+                    f0n = f_h[-1]
+                    ann = an_h[-1]
+
+                    iii = 1
+                    while f_h[-1] >= f0n:
+                        gamma_h.append( gamma_h[-1] / 2.0 )
+                        mom, antmp, ftmp, fptmp = self.takeStep(mom, ann, gamma_h[-1], df_h[-1], paramMapping)
+                        an_h.append(antmp)
+                        f_h.append(ftmp)
+                        fp_h.append(fptmp)
+                        print('FoM: ' + str(f_h[-1]))  
+                        iii += 1
+
+                        if ( iii > 25):
+                            break
+
+                if ( f_h[-1] < 1e-14 ):
+                    break
+
+                if ( len(f_h) > maxSteps ):
+                    break
+
+                if ( ii == 1 ):
+                    break
+        except KeyboardInterrupt:
+            pass  
+
+        # opt history
+        return mom, an_h, gamma_h, f_h, fp_h, df_h  
+              
