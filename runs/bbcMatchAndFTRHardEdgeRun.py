@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from momentSolver.MomentSolver import MomentSolver,MomentSolverUtility
+from momentSolver.MomentSolver import MomentSolver,MomentSolverUtility, OptimizationUtility
 from momentSolver.PlottingUtility import PlottingUtility
 # Magnet parameters & Opt parameters
 from systems.bbcMatchingAndFTRHardEdge.magnetParameters import lattice
 
 msu = MomentSolverUtility()
 pu = PlottingUtility()
+ou = OptimizationUtility()
 
 # initial values
 betax,betay = 0.629, 0.0629
@@ -32,12 +33,36 @@ yyprime=-2.091128042711822252e-09
 initCond=msu.GetInitialConditionsFromWarp( xsq, xprimesq, ysq, yprimesq, xy, xxprime, yyprime, xyprime, yxprime, xprimeyprime)#
 # physics settings
 energy = 5e3 # eV
-current = 0.0e-3 # Amps
+current = 2.9e-3 # Amps
 pipeRadius = 0.0 # meters
 
 # sim parameters
 zInterval = (0, 2.5) # meters
 stepSize = 0.0001 # step size
+
+####### Setup Monte Carlo Runs
+# order of paramters in lattice
+parammapping = [
+    ['dbdx'], # match quad 1 
+    ['dbdx'], # match quad 2
+    ['dbdx'], # match quad 3 
+    ['dbdx'], # match quad 4
+    ['dbdx'], # FTR quad 1
+    ['dbdx'], # FTR quad 2
+    ['dbdx'], # FTR quad 3
+    ['dbdx'] # solenoid
+]      
+paramarray = np.array([
+    1.19434288,
+    1.08897557, 
+    0.94981503, 
+    0.97707912, 
+    0.93096008,
+    1.13721921,
+    0.93096008, 
+    1.00551907
+])
+params = ou.getParamObj(paramarray, parammapping)
 
 mom = MomentSolver(
     lattice, 
@@ -51,7 +76,16 @@ mom = MomentSolver(
 
 # run the moment equations
 mom.Run(verbose=True)
-
 # plot results
 pu.PlotEnv(mom)
+plt.ylim((-1,10))
+
+mom.UpdateLattice(params = params)
+
+# run the moment equations
+mom.Run(verbose=True)
+# plot results
+pu.PlotEnv(mom)
+plt.ylim((-1,10))
+
 plt.show()

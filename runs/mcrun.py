@@ -49,7 +49,7 @@ current = 2.9e-3 # [Amps]
 pipeRadius = 0.0 # [meters] , for image charges effect on pipe walls, zero ignores the effect
 
 # sim parameters
-zInterval = (0, 2.5) # 1.422 is about where the solenoid starts
+zInterval = (0, 1.35) # 1.422 is about where the solenoid starts
 stepSize = 0.0001
 
 ####### Setup Monte Carlo Runs
