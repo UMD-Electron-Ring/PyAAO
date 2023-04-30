@@ -39,7 +39,6 @@ class MomentSolver:
         '''
         return starting conditions for the moment equations (based off Santiago's values)
         can be updated whenever.
-
         These represent the initial conditions of the beam for the simulations.
         If we wanted to change the starting beam size/emittance, we do it here.
         '''
@@ -100,7 +99,6 @@ class MomentSolver:
         dP/dz = E + O * Q
         dE/dz = O * P + N*L
         dL/dz = -N * Q
-
         See notes 1_14_21 page 3
         '''
 
@@ -124,7 +122,6 @@ class MomentSolver:
         '''
         Run the adjoint moment equations backwards
         Similar to just running the regular moment equations forward
-
         See notes 1_14_21 page 12, middle of page set of equations
         '''
 
@@ -160,7 +157,6 @@ class MomentSolver:
         Y(8) - E-
         Y(9) - Ex
         Y(10) - L
-
         See notes 1_14_21 page 3
         '''
 
@@ -202,7 +198,6 @@ class MomentSolver:
         Main function to solve the adjoint equations (backwards)
         
         Here we have the original 11 moments + the 11 adjoint moments for a total of a 22 variable ode solve
-
         See notes 1_14_21 page 12, middle of page set of equations
         '''
         Y = Yt[0:11] # adjoint variables
@@ -266,7 +261,6 @@ class MomentSolver:
     def GetCOM(self, y):
         '''
         Calculate the constant of motion
-
         This parameter is just a check to see if the equations are getting calculated correctly.
         If this value is not constant vs time, something is wrong.
         
@@ -380,7 +374,6 @@ class MomentSolver:
     def GetDF(self):
         '''
         Calculate Omat,Nmat perturbation matrices
-
         See notes 1_14_21 page 16, In order to calculate the intergral, we need to find O,N perturbation matrices.
         I.e. if I perturb a magnet, how much does O & N matrices change.
         '''
@@ -428,7 +421,6 @@ class MomentSolver:
     def CalcInt(self, Omat, Nmat):
         '''
         Calculate adjoint integral
-
         See notes 1_14_21 page 16
         '''
         int1 = np.zeros(len(self.z))
@@ -586,17 +578,17 @@ class MomentSolverUtility:
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])
     
     # initial beam conditions from moments (usually given from Warp)
-    def GetInitialConditionsFromWarp(self, x2, xp2, y2, yp2, xy, xxp, yyp, xyp, yxp, xpyp):
-        Q_plus = 0.5*(x2 + y2)
-        Q_minus = 0.5*(x2 - y2)
+    def GetInitialConditionsFromWarp(self, xsq, xprimesq, ysq, yprimesq, xy, xxprime, yyprime, xyprime, yxprime, xprimeyprime):
+        Q_plus = 0.5*(xsq + ysq)
+        Q_minus = 0.5*(xsq - ysq)
         Q_x = xy
-        P_plus = xxp + yyp
-        P_minus = xxp - yyp
-        P_x = yxp + xyp
-        E_plus = xp2 + yp2
-        E_minus = xp2 - yp2
-        E_x = 2.0 * xpyp
-        L = xyp - yxp
+        P_plus = xxprime + yyprime
+        P_minus = xxprime - yyprime
+        P_x = yxprime + xyprime
+        E_plus = xprimesq + yprimesq
+        E_minus = xprimesq - yprimesq
+        E_x = 2.0 * xprimeyprime
+        L = xyprime - yxprime
         phi = 0
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])        
 
@@ -667,10 +659,8 @@ class OptimizationUtility:
         f_h.append(ftmp)
         fp_h.append(fptmp)
         print('FoM: ' + str(f_h[-1]))
-
         try:
-
-            # find the starting gamma value
+        # find the starting gamma value
             while f_h[-1] >= f0:
                 gamma_h.append( gamma_h[-1] / 2.0 )
                 mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
@@ -680,6 +670,7 @@ class OptimizationUtility:
                 print('FoM: ' + str(f_h[-1]))    
 
         # main loop 
+        
             while True:
 
                 # step
@@ -747,4 +738,3 @@ class OptimizationUtility:
 
         # opt history
         return mom, an_h, gamma_h, f_h, fp_h, df_h  
-              

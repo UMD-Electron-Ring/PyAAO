@@ -27,15 +27,29 @@ pu = PlottingUtility()
 betax,betay = 0.629, 0.0629
 alphax,alphay = 0,0
 emitx,emity = 53e-6,5.3e-6
-initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
+
+xprimesq=2.118983100854736858e-05
+xprimeyprime=0
+xsq=8.307505759310390044e-06
+xxprime=0
+xy=0
+xyprime=0
+yprimesq=2.104241921605963170e-05
+ysq=8.320693194604818684e-08
+
+yxprime=0
+
+yyprime=-2.091128042711822252e-09
+#initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
+initCond=msu.GetInitialConditionsFromWarp( xsq, xprimesq, ysq, yprimesq, xy, xxprime, yyprime, xyprime, yxprime, xprimeyprime)#constant
 
 # physics settings
 energy = 5e3 # [eV]
-current = 0.0 # [Amps]
+current = 2.9e-3 # [Amps]
 pipeRadius = 0.0 # [meters] , for image charges effect on pipe walls, zero ignores the effect
 
 # sim parameters
-zInterval = (0, 1.422) # 1.422 is about where the solenoid starts
+zInterval = (0, 2.5) # 1.422 is about where the solenoid starts
 stepSize = 0.0001
 
 ####### Setup Monte Carlo Runs
@@ -66,13 +80,27 @@ paramarray = np.array([
 # say 10 different values
 paramarrays = [] # list of a set of paramarray
 Nparameters = 8
-Nruns = 3
+Nruns = 1
+import random
 for i in range(Nruns):
     # can do something better here, e.g. uniform start etc..
-    randValues = (np.random.rand(Nparameters) * 0.2 + 0.9) # will give you a random number between 0.9 -> 1.10 , so +/- 10%
-    paramarrays.append( paramarray * randValues )
+    random.seed(223)
+    placeholder=[]# defining
+    for i,value in enumerate(paramarray):
+        start=.98*value# array notationa not needed for modifying
+        stop=1.02*value
+        placeholder.append(np.round(np.random.uniform(start, stop), 6))
+   
+   
+    #randValues = (np.random.rand(Nparameters) * 0.2 + 0.9) # will give you a random number between 0.9 -> 1.10 , so +/- 10%
+    #paramarrays.append( paramarray * randValues )
+    paramarrays.append( placeholder )# lists of different parameter sets
+# for i in range(Nruns):
+#     # can do something better here, e.g. uniform start etc..
+#     randValues = (np.random.rand(Nparameters) * 0.2 + 0.9) # will give you a random number between 0.9 -> 1.10 , so +/- 10%
+#     paramarrays.append( paramarray * randValues )
 
-params = ou.getParamObj(paramarray, parammapping)
+# params = ou.getParamObj(paramarray, parammapping)
 #######
 
 ###############################################################
@@ -103,7 +131,7 @@ for ii,paramarrayChoice in enumerate(paramarrays):
         pu.PlotEnv(mom, title='Initial solution, run #' + str(ii))   
 
     # run moment solver. Ctrl-c to interrupt
-    mom, an_h, gamma_h, f_h, fp_h, df_h  = ou.runOptimization(mom, params, parammapping, maxSteps=1000)
+    mom, an_h, gamma_h, f_h, fp_h, df_h  = ou.runOptimization(mom, params, parammapping, maxSteps=500)#originally 1000
 
     # print final results
     print(an_h[-1])

@@ -38,7 +38,15 @@ if True:
 
     # we have 8 things in our mapping ,so we need 8 initial values for them (1)
     # Even though the 'None' categories will be ignored, we need to just initialize some value for them
-    paramarray = np.ones(8)
+    paramarray = [1.00689455,
+                   1.00738497,
+                     0.955682,
+                           0.96906425,
+                             0.98753207,
+                               1.11503013,
+
+ 0.98753207,
+   0.9915573]
 
 # run optimization on just FTR quad strength and solenoid strength + position
 if False:
