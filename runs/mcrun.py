@@ -129,7 +129,7 @@ for ii,paramarrayChoice in enumerate(paramarrays):
         # plot initial stuff
         mom.Run()
         pu.PlotEnv(mom, title='Initial solution, run #' + str(ii))   
-
+        momentinitial=mom.y # y are my moments
     # run moment solver. Ctrl-c to interrupt
     mom, an_h, gamma_h, f_h, fp_h, df_h  = ou.runOptimization(mom, params, parammapping, maxSteps=500)#originally 1000
 
@@ -141,7 +141,8 @@ for ii,paramarrayChoice in enumerate(paramarrays):
 
     # save final results
     # each mc run is a separate file
-    np.save('runs/run'+str(ii)+'.npy',[mom.z,mom.y,an_h,gamma_h,f_h,fp_h,df_h])
+    #np.save('runs/run'+str(ii)+'.npy',[mom.z,mom.y,an_h,gamma_h,f_h,fp_h,df_h])
+    np.save('runs/run'+str(ii)+'.npy',[mom.z,mom.y,an_h,gamma_h,f_h,fp_h,df_h,momentinitial])
 
     # grab all the data from the run and store it.
     an_h_mc.append( an_h )
