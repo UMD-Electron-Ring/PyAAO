@@ -668,17 +668,18 @@ class OptimizationUtility:
         fp_h.append(fptmp)
         print('FoM: ' + str(f_h[-1]))
 
-        # find the starting gamma value
-        while f_h[-1] >= f0:
-            gamma_h.append( gamma_h[-1] / 2.0 )
-            mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
-            an_h.append(antmp)
-            f_h.append(ftmp)
-            fp_h.append(fptmp)
-            print('FoM: ' + str(f_h[-1]))    
+        try:
+
+            # find the starting gamma value
+            while f_h[-1] >= f0:
+                gamma_h.append( gamma_h[-1] / 2.0 )
+                mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
+                an_h.append(antmp)
+                f_h.append(ftmp)
+                fp_h.append(fptmp)
+                print('FoM: ' + str(f_h[-1]))    
 
         # main loop 
-        try:
             while True:
 
                 # step

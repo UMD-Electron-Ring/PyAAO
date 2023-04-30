@@ -58,6 +58,16 @@ mom.zInterval = zInterval
 # run moment solver. Ctrl-c to interrupt
 mom, an_h, gamma_h, f_h, fp_h, df_h  = ou.runOptimization(mom, params, parammapping)
 
+# save results
+np.save('runs/run1.npy',[an_h,gamma_h,f_h,fp_h,df_h],dtype=object)
+
+# make your own plots here
+plt.figure()
+plt.plot(mom.z, mom.y[0,:]) # plots Q+ vs z
+x2 = mom.y[0,:] + mom.y[1,:] # Q+ + Q- = <x^2>
+plt.plot(mom.z, x2) # plots <x^2> vs z
+plt.show()
+
 # print final results 
 print(an_h[-1])
 an_h[-1],mom = setRestrictions(mom, an_h[-1])
