@@ -53,14 +53,14 @@ parammapping = [
     ['dbdx'] # solenoid
 ]      
 paramarray = np.array([
-    1.19434288,
-    1.08897557, 
-    0.94981503, 
-    0.97707912, 
-    0.93096008,
-    1.13721921,
-    0.93096008, 
-    1.00551907
+    1.18712312, 
+    1.09061345, 
+    0.94645688, 
+    1.00492277, 
+    0.94393287, 
+    1.14678234,
+    0.94393287, 
+    0.98379653
 ])
 params = ou.getParamObj(paramarray, parammapping)
 
@@ -78,7 +78,7 @@ mom = MomentSolver(
 mom.Run(verbose=True)
 # plot results
 pu.PlotEnv(mom)
-plt.ylim((-1,10))
+#plt.ylim((-1,10))
 
 mom.UpdateLattice(params = params)
 
@@ -86,6 +86,6 @@ mom.UpdateLattice(params = params)
 mom.Run(verbose=True)
 # plot results
 pu.PlotEnv(mom)
-plt.ylim((-1,10))
+#plt.ylim((-1,10))
 
 plt.show()
