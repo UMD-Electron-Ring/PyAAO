@@ -18,6 +18,11 @@ def setRestrictions(momObj, paramArray):
         # Let us just make quad 1 dbdx the same as quad 3 dbdx
         paramArray[4] = paramArray[6]
 
+<<<<<<< Updated upstream
+=======
+    
+
+>>>>>>> Stashed changes
     return paramArray, momObj
 
 msu = MomentSolverUtility()
@@ -32,11 +37,11 @@ initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # [eV]
-current = 0.0 # [Amps]
+current = 2.5e-3# [Amps]
 pipeRadius = 0.0 # [meters] , for image charges effect on pipe walls, zero ignores the effect
 
 # sim parameters
-zInterval = (0, 1.422) # 1.422 is about where the solenoid starts
+zInterval = (0, 2.5);#1.422) # 1.422 is about where the solenoid starts
 stepSize = 0.0001
 
 print('Setting up initial lattice')
