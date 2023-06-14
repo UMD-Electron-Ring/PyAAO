@@ -43,7 +43,7 @@ def plotParams(params):
 
 ###################################
 # Magnet parameters
-from systems.bbcInitialMatch.magnetParameters import lattice
+from systems.bbcInitialMatch.magnetParametersOldUmerProfie import lattice
 ###################################
 
 ###################################

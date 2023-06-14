@@ -1,54 +1,57 @@
-import sys, os
-sys.path.append('..' + os.sep + '..') # add 2 dir up to path
-
 import numpy as np
-from momentSolver.Magnets import QuadProfile, SolenoidProfile
+from momentSolver.Magnets import QuadProfile
 
 ###################################
-# quad profile settings
-g0 = 0.0361 # T / m A
-l = 0.12 # meters
-s0 = 0.06 # meters
-d = 0.021 # meters
-# solenoid profile settings
-b = 5.0408
-c = 0.5027
-ds = 137.08
-ls = 200 # cm
-s0s = 100 #cm
 
-# Quad settings
-quad1 = {}
-quad1['type'] = 'quad' # what type of magnet is this
-quad1['zstart'] = .00425 # starting location in meters
-quad1['length'] = l # length of the quadrupole
-quad1['zend'] = quad1['zstart'] + quad1['length']
-quad1['rotation'] = 0.0 # rotation angle of the quadrupole in radians
-quad1['dbdx'] = QuadProfile( lambda s : -g0 * np.exp(-1 * (s-s0)**2 / d**2 ) ) # field profile function of the quadrupole
+q1match = -0.037658 # T / m
+q2match = 0.04702 # T /m
+q3match = -0.028066# T / m
+q4match = -0.010854 # T / m
+leff = 0.05164 #0.0589 # meters # length of the quadrupole
+leffHalf = leff / 2.0 # meters
+offset = leffHalf # since numbers are quad centers
+q1matchstart = 0.2100 - offset
+q2matchstart = 0.3300 - offset
+q3matchstart = 0.4500 - offset
+q4matchstart = 0.5700 - offset
+lattice = []
 
-quad2 = {}
-quad2['type'] = 'quad'
-quad2['zstart'] = 0.10655
-quad2['length'] = l
-quad2['zend'] = quad2['zstart'] + quad2['length']
-quad2['rotation'] = 0.0
-quad2['dbdx'] = QuadProfile( lambda s : g0 * np.exp(-1 * (s-s0)**2 / d**2 ) )
+# Setup matching section quads
+quad = {}
+quad['type'] = 'quad' # what type of magnet is this
+quad['zstart'] = q1matchstart
+quad['length'] = leff # length of the quadrupole
+quad['zend'] = quad['zstart'] + quad['length']
+quad['rotation'] = 0.0 # rotation angle of the quadrupole in radians
+quad['dbdx'] = QuadProfile( lambda s : q1match ) # field profile function of the quadrupole , hard edge, so no dependence on position
+lattice.append(quad)
 
-quad3 = {}
-quad3['type'] = 'quad'
-quad3['zstart'] = 0.20895
-quad3['length'] = l
-quad3['zend'] = quad3['zstart'] + quad3['length']
-quad3['rotation'] = 0.0
-quad3['dbdx'] = QuadProfile( lambda s : -g0 * np.exp(-1 * (s-s0)**2 / d**2 ) )
+quad = {}
+quad['type'] = 'quad' # what type of magnet is this
+quad['zstart'] = q2matchstart
+quad['length'] = leff # length of the quadrupole
+quad['zend'] = quad['zstart'] + quad['length']
+quad['rotation'] = 0.0 # rotation angle of the quadrupole in radians
+quad['dbdx'] = QuadProfile( lambda s : q2match ) # field profile function of the quadrupole , hard edge, so no dependence on position
+lattice.append(quad)
 
-quad4 = {}
-quad4['type'] = 'quad'
-quad4['zstart'] = 0.3100
-quad4['length'] = l
-quad4['zend'] = quad4['zstart'] + quad4['length']
-quad4['rotation'] = 0.0
-quad4['dbdx'] = QuadProfile( lambda s : g0 * np.exp(-1 * (s-s0)**2 / d**2 ) )
+quad = {}
+quad['type'] = 'quad' # what type of magnet is this
+quad['zstart'] = q3matchstart
+quad['length'] = leff # length of the quadrupole
+quad['zend'] = quad['zstart'] + quad['length']
+quad['rotation'] = 0.0 # rotation angle of the quadrupole in radians
+quad['dbdx'] = QuadProfile( lambda s : q3match ) # field profile function of the quadrupole , hard edge, so no dependence on position
+lattice.append(quad)
 
-lattice = np.array([ quad1, quad2, quad3, quad4 ])
+quad = {}
+quad['type'] = 'quad' # what type of magnet is this
+quad['zstart'] = q4matchstart
+quad['length'] = leff # length of the quadrupole
+quad['zend'] = quad['zstart'] + quad['length']
+quad['rotation'] = 0.0 # rotation angle of the quadrupole in radians
+quad['dbdx'] = QuadProfile( lambda s : q4match ) # field profile function of the quadrupole , hard edge, so no dependence on position
+lattice.append(quad)
+
+lattice = np.array(lattice)
 ###################################

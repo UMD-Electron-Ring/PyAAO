@@ -1,16 +1,20 @@
-from momentSolver.MomentSolver import MomentSolver
 import numpy as np
 import matplotlib.pyplot as plt
-
-###################################
-# Magnet parameters
+from momentSolver.MomentSolver import MomentSolver,OptimizationUtility,MomentSolverUtility
+from momentSolver.PlottingUtility import PlottingUtility
+# Magnet parameters & Opt parameters
 from systems.bbcInitialMatch.magnetParameters import lattice
-###################################
+from systems.bbcInitialMatch.optParameters import params,parammapping
 
-###################################
-# Opt parameters
-from systems.bbcInitialMatch.optParameters import params, initialConditions
-###################################
+msu = MomentSolverUtility()
+ou = OptimizationUtility()
+pu = PlottingUtility()
+
+# initial values
+betax,betay = 0.629, 0.0629
+alphax,alphay = 0,0
+emitx,emity = 53e-6,5.3e-6
+initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
 
 # physics settings
 energy = 5e3 # eV
@@ -18,26 +22,16 @@ current = 0.0e-3 # Amps
 pipeRadius = 0.0 # meters
 
 # sim parameters
-zInterval = (0, 0.5) # meters
+zInterval = (0, 0.63205) # meters
 stepSize = 0.0001 # step size
 
 mom = MomentSolver(lattice, energy=energy, current=current, pipeRadius=pipeRadius, zInterval=zInterval, stepSize=stepSize)
-mom.initialMoments = initialConditions
+mom.initialMoments = initCond
 mom.UpdateLattice(params = params)
+pu.printLattice(mom)
 
-z, y, ksol, kquad = mom.Run(verbose=True)
-#zadj, yadj, _, _ = mom.RunAdjoint(verbose=True)
-
-xr = y[0,:] + y[1,:] #  <x^2> = Q+ + Q-
-yr = y[0,:] - y[1,:] #  <y^2> = Q+ - Q-
-plt.figure()
-plt.plot(z,xr, label='beam size X')
-plt.plot(z,yr, label='beam size Y')
-plt.plot(z,ksol * 1e-6) # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
-plt.plot(z,kquad * 1e-8) # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
-plt.xlabel('Z [m]')
-plt.ylabel('Beam moment [m^2]')
-plt.grid(True)
-plt.legend()
+# plot initial stuff
+mom.Run()
+pu.PlotEnv(mom, title='Initial solution')
 
 plt.show()

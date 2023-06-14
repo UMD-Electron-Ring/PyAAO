@@ -624,24 +624,30 @@ class OptimizationUtility:
         return np.array(params)
     
     # take a step in the optimization
-    def takeStep(self, mom, an0, gamma0, df0, pmapping):
+    def takeStep(self, mom, an0, gamma0, df0, pmapping, useMatchFoM=False):
         anNew = an0 - gamma0 * df0
         if( self.restFunc ):
             anNew, mom = self.restFunc(mom, anNew)
         mom.UpdateLattice( params = self.getParamObj(anNew,pmapping) )
         mom.Run()         
-        ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
+        if ( useMatchFoM ):
+            ftmp,fptmp,_ = mom.GetFoM_And_DFoM_Match()
+        else:
+            ftmp,fptmp,_ = mom.GetFoM_And_DFoM()      
         return mom, anNew, ftmp, fptmp    
 
-    def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000):
+    def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000, useMatchFoM=False):
         # run moments and adjoint equations
         print('Running Mom. Eqn.')
         mom.Run()
-        mom.RunAdjoint(useMatchFoM=False)
+        mom.RunAdjoint(useMatchFoM)
 
         # get FoM
         print('Starting Opt.')
-        f0,f0p,_ = mom.GetFoM_And_DFoM()
+        if ( useMatchFoM ):
+            f0,f0p,_ = mom.GetFoM_And_DFoM_Match()
+        else:
+            f0,f0p,_ = mom.GetFoM_And_DFoM()
         df0 = mom.GetDF()
         gamma = f0 / np.sum( df0**2 )
         print('Starting FoM: ' + str(f0))
@@ -654,7 +660,7 @@ class OptimizationUtility:
         df_h = [df0]
 
         # initial first step
-        mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[0], df_h[0], paramMapping)
+        mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[0], df_h[0], paramMapping, useMatchFoM)
         an_h.append(antmp)
         f_h.append(ftmp)
         fp_h.append(fptmp)
@@ -663,7 +669,7 @@ class OptimizationUtility:
         # find the starting gamma value
             while f_h[-1] >= f0:
                 gamma_h.append( gamma_h[-1] / 2.0 )
-                mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
+                mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping, useMatchFoM)
                 an_h.append(antmp)
                 f_h.append(ftmp)
                 fp_h.append(fptmp)
@@ -679,7 +685,7 @@ class OptimizationUtility:
                     print('Iterating ' + str(ii))
 
                     # iterate
-                    mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[-1], gamma_h[-1], df_h[-1], paramMapping)
+                    mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[-1], gamma_h[-1], df_h[-1], paramMapping, useMatchFoM)
                     an_h.append(antmp)
                     f_h.append(ftmp)
                     fp_h.append(fptmp)
@@ -701,7 +707,7 @@ class OptimizationUtility:
                 # calculate adjoint
                 mom.UpdateLattice( params = self.getParamObj(an_h[-1],paramMapping) )
                 mom.Run()
-                mom.RunAdjoint(useMatchFoM=False)
+                mom.RunAdjoint(useMatchFoM)
 
                 # calculate df
                 df_h.append( mom.GetDF() )
@@ -715,7 +721,7 @@ class OptimizationUtility:
                     iii = 1
                     while f_h[-1] >= f0n:
                         gamma_h.append( gamma_h[-1] / 2.0 )
-                        mom, antmp, ftmp, fptmp = self.takeStep(mom, ann, gamma_h[-1], df_h[-1], paramMapping)
+                        mom, antmp, ftmp, fptmp = self.takeStep(mom, ann, gamma_h[-1], df_h[-1], paramMapping, useMatchFoM)
                         an_h.append(antmp)
                         f_h.append(ftmp)
                         fp_h.append(fptmp)
