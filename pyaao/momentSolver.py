@@ -1,12 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
-#from momentSolver.MomentSolver import MomentSolver,OptimizationUtility,MomentSolverUtility
-
-import sys
-sys.path.append('..')
-from bindings.adjointFTRBindings import *
+from adjointFTRBindings import *
 import numpy as np
 import copy 
+import matplotlib.pyplot as plt
 
 class MomentSolver:
     '''
@@ -449,6 +444,7 @@ class MomentSolver:
         Nicely print out lattice parameters
         '''
         pass
+
 class MomentSolverUtility:
     '''
     Helper class with some utilities used within the MomentSolver class.
@@ -596,9 +592,6 @@ class MomentSolverUtility:
         phi = 0
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])        
 
-    def printLatticeInfo(self, lattice):
-        pass
-
 class OptimizationUtility:
     '''
     Helper class for running optimizations
@@ -634,18 +627,18 @@ class OptimizationUtility:
             anNew, mom = self.restFunc(mom, anNew)
         mom.UpdateLattice( params = self.getParamObj(anNew,pmapping) )
         mom.Run()         
-        ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
+        ftmp,fptmp,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
         return mom, anNew, ftmp, fptmp    
 
     def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000):
         # run moments and adjoint equations
         print('Running Mom. Eqn.')
         mom.Run()
-        mom.RunAdjoint(useMatchFoM=False)
+        mom.RunAdjoint(useMatchFoM=True) ###################### FOM call here. If using new FoM, go into this function and update in there
 
         # get FoM
         print('Starting Opt.')
-        f0,f0p,_ = mom.GetFoM_And_DFoM()
+        f0,f0p,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
         df0 = mom.GetDF()
         gamma = f0 / np.sum( df0**2 )
         print('Starting FoM: ' + str(f0))
@@ -673,8 +666,7 @@ class OptimizationUtility:
                 fp_h.append(fptmp)
                 print('FoM: ' + str(f_h[-1]))    
 
-        # main loop 
-        
+            # main loop 
             while True:
 
                 # step
@@ -705,7 +697,7 @@ class OptimizationUtility:
                 # calculate adjoint
                 mom.UpdateLattice( params = self.getParamObj(an_h[-1],paramMapping) )
                 mom.Run()
-                mom.RunAdjoint(useMatchFoM=False)
+                mom.RunAdjoint(useMatchFoM=True)
 
                 # calculate df
                 df_h.append( mom.GetDF() )
@@ -742,15 +734,6 @@ class OptimizationUtility:
 
         # opt history
         return mom, an_h, gamma_h, f_h, fp_h, df_h  
-    
-#from momentSolver.PlottingUtility import PlottingUtility
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-
-
 
 class PlottingUtility:
     '''
@@ -759,7 +742,6 @@ class PlottingUtility:
 
     def __init__(self, momObj=None):
         self.momObj = momObj
-
 
     def PlotEnv(self, momObj=None, title=None):
         '''
@@ -776,8 +758,11 @@ class PlottingUtility:
         plt.plot(momObj.z, yr, label='$<y>$')
 
         sfquad = xr[0] * 0.25 / np.max(momObj.kquad)
-        sfsol = xr[0] * 0.25 / np.max(momObj.ksol)
-        plt.plot(momObj.z, momObj.ksol * sfsol, c='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
+        try:
+            sfsol = xr[0] * 0.25 / np.max(momObj.ksol)
+            plt.plot(momObj.z, momObj.ksol * sfsol, c='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
+        except:
+            pass
         plt.plot(momObj.z, momObj.kquad * sfquad, c='k') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
         plt.xlabel('Z [m]')
         plt.ylabel('Beam size [mm]')
@@ -854,86 +839,3 @@ class PlottingUtility:
             table.append(entry)
 
         print(tabulate(table , headers=["Element", 'zStart [m]', 'zCenter [m]', 'zEnd [m]', 'dB/dx [T/m]', 'angle [rad]']))
-
-                
-# Magnet parameters & Opt parameters
-from systems.bbcInitialMatch.magnetParameters import lattice
-from systems.bbcInitialMatch.optParameters import params,parammapping
-
-# restrictions on the optimization. This gets applied during each gradient step
-def setRestrictions(momObj, paramArray):
-
-    # FTR quad 1 & 3 symmetric strength restriction
-    # We want quad 1 & 3 to have same strengths, so in our case, have the same optimization values
-    if True:
-        # Figure out what order the dbdx strength parameters were in our paramArray
-        # If we are running using the second set of parameters in the optParameters.py file, then quad1 & 3 strength is 
-        # inside index number 4 & 6:
-        # Let us just make quad 1 dbdx the same as quad 3 dbdx
-        paramArray[0] = paramArray[2]# 7/21 I want the 1st and the 3rd to be the same
-        paramArray[1]=paramArray[0]*2 # I want the 2nd quad to be twice the 1st and the 3rd
-
-    return paramArray, momObj
-
-msu = MomentSolverUtility()
-ou = OptimizationUtility(setRestrictions)
-pu = PlottingUtility()
-
-# initial values
-betax,betay = 0.629, 0.0629
-alphax,alphay = 0,0
-emitx,emity = 53e-6,5.3e-6
-initCond = msu.GetInitialConditions(betax,betay,alphax,alphay,emitx,emity)
-
-# physics settings
-energy = 5e3 # [eV]
-current = 2.5e-3# [Amps]
-pipeRadius = 0.0 # [meters] , for image charges effect on pipe walls, zero ignores the effect
-
-# sim parameters
-zInterval = (0, 2.5);#1.422) # 1.422 is about where the solenoid starts
-stepSize = 0.0001
-
-print('Setting up initial lattice')
-mom = MomentSolver(lattice, energy=energy, current=current, pipeRadius=pipeRadius, zInterval=zInterval, stepSize=stepSize)
-mom.initialMoments = initCond
-mom.UpdateLattice(params = params)
-pu.printLattice(mom)
-
-# plot initial stuff
-mom.Run()
-pu.PlotEnv(mom, title='Initial solution')
-mom.zInterval = (0, 2.5)
-mom.Run()
-pu.PlotEnv(mom, title='Initial solution over longer distance solenoid')
-mom.zInterval = zInterval
-
-###############################################################
-
-# run moment solver. Ctrl-c to interrupt
-mom, an_h, gamma_h, f_h, fp_h, df_h  = ou.runOptimization(mom, params, parammapping)
-
-# save results
-np.save('runs/run1.npy',[an_h,gamma_h,f_h,fp_h,df_h],dtype=object)
-
-# make your own plots here
-plt.figure()
-plt.plot(mom.z, mom.y[0,:]) # plots Q+ vs z
-x2 = mom.y[0,:] + mom.y[1,:] # Q+ + Q- = <x^2>
-plt.plot(mom.z, x2) # plots <x^2> vs z
-plt.show()
-
-# print final results 
-print(an_h[-1])
-an_h[-1],mom = setRestrictions(mom, an_h[-1])
-mom.UpdateLattice( params = ou.getParamObj(an_h[-1],parammapping) )
-pu.printLattice(mom)
-
-# plot stuff again
-pu.PlotEnv(mom, title='Optimized solution')
-mom.zInterval = (0, 2.5)
-mom.Run()
-pu.PlotEnv(mom, title='Optimized solution over longer distance solenoid')
-mom.zInterval = zInterval
-
-plt.show()

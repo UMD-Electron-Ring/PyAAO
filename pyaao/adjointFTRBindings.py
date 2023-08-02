@@ -1,3 +1,9 @@
+#
+# This is the python interface/wrapper/bindings to talk to the cpp code for certain calculation intense adjoint equations
+#
+#
+#
+
 import ctypes
 import numpy as np
 

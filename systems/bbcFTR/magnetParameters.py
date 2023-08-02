@@ -1,8 +1,5 @@
-import sys, os
-sys.path.append('..' + os.sep + '..') # add 2 dir up to path
-
 import numpy as np
-from momentSolver.Magnets import QuadProfile, SolenoidProfile
+from Magnets import QuadProfile, SolenoidProfile
 
 ###################################
 # quad profile settings
