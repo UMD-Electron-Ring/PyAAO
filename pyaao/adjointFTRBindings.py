@@ -10,7 +10,10 @@ import numpy as np
 import pathlib, os
 cdir = str(pathlib.Path(__file__).parent.resolve())
 
-lib = ctypes.WinDLL(cdir + os.sep + 'AdjointFTR.dll')
+if os.name == 'nt': # windows	
+	lib = ctypes.WinDLL(os.path.join(cdir,'..','bindings','AdjointFTR.dll'))
+else: # linux
+	lib = ctypes.CDLL(os.path.join(cdir,'..','bindings','libAdjointFTR.so'))
 
 lib.AdjointFTR_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.AdjointFTR_getSCVM.argtypes = (

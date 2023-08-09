@@ -178,6 +178,24 @@ namespace FTR
 
 extern "C"
 {
+#ifdef __linux__ // linux
+	FTR::AdjointFTR* AdjointFTR_new()
+	{
+		return new FTR::AdjointFTR();
+	}
+	void AdjointFTR_destroy(FTR::AdjointFTR* adjointFTR)
+	{
+		delete adjointFTR;
+	}
+	double* AdjointFTR_getSCVM(FTR::AdjointFTR* adjointFTR, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
+	{
+		return adjointFTR->GetSCVM(kPerv, Y0, Y1, Y2, Y3, Y4, Y5);
+	}
+	double* AdjointFTR_getONmats(FTR::AdjointFTR* adjointFTR, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
+	{
+		return adjointFTR->GetONmats(kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
+	}
+#else // windows	
 	__declspec(dllexport) FTR::AdjointFTR* AdjointFTR_new()
 	{
 		return new FTR::AdjointFTR();
@@ -194,4 +212,5 @@ extern "C"
 	{
 		return adjointFTR->GetONmats(kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
 	}
+#endif
 }
