@@ -117,7 +117,7 @@ class MomentSolver:
         
         return z,y,ksol,kquad
 
-    def RunAdjoint(self, verbose=False, useMatchFoM=False):
+    def RunAdjoint(self, verbose=False, useMatchFoM=False,usePeriodicFoM=False):
         '''
         Run the adjoint moment equations backwards
         Similar to just running the regular moment equations forward
@@ -130,6 +130,8 @@ class MomentSolver:
         # setup initial conditions
         if ( useMatchFoM == True ):
             _, _, self.initialMomentsAdjoint = self.GetFoM_And_DFoM_Match()
+        elif ( usePeriodicFoM == True ):
+            _, _, self.initialMomentsAdjoint = self.GetFoM_And_DFoM_Periodic()
         else:
             _, _, self.initialMomentsAdjoint = self.GetFoM_And_DFoM()
         initialMoments = np.concatenate((self.initialMomentsAdjoint, np.array([self.y[-1,-1]]), self.y[:,-1]))
@@ -146,16 +148,16 @@ class MomentSolver:
         '''
         Main function that solves Tom's moment equations
         
-        Y(1) - Q+
-        Y(2) - Q-
-        Y(3) - Qx
-        Y(4) - P+
-        Y(5) - P-
-        Y(6) - Px
-        Y(7) - E+
-        Y(8) - E-
-        Y(9) - Ex
-        Y(10) - L
+        Y(1) - Q+ [L]
+        Y(2) - Q- [L]
+        Y(3) - Qx [L]
+        Y(4) - P+ [1]
+        Y(5) - P- [1]
+        Y(6) - Px [1]
+        Y(7) - E+ [1/L]
+        Y(8) - E- [1/L]
+        Y(9) - Ex [1/L]
+        Y(10) - L [L]
         See notes 1_14_21 page 3
         '''
 
@@ -321,7 +323,7 @@ class MomentSolver:
             
         return FoM, FoMp, dFoM
 
-    def GetFoM_And_DFoM_Match(self, index = -1, k0 = 7):
+    def GetFoM_And_DFoM_Match(self, index = -1, k0=1.0/.6489):
         '''
         FoM for a periodic match, i.e. initial conditions = final conditions
         '''
@@ -368,7 +370,41 @@ class MomentSolver:
         
         dFoM = np.array([dQ_p,dQ_m,dQ_x,dP_p,dP_m,dP_x,dE_p,dE_m,dE_x,dL])          
             
-        return FoM, FoMp, dFoM        
+        return FoM, FoMp, dFoM
+
+    def GetFoM_And_DFoM_Periodic(self,index=-1,k0=1.0/.6489):
+        '''
+        Calculates the Figure of Merit along some length in the simulation
+        
+        Y(1) - Q+ [L]
+        Y(2) - Q- [L]
+        Y(3) - Qx [L]
+        Y(4) - P+ [1]
+        Y(5) - P- [1]
+        Y(6) - Px [1]
+        Y(7) - E+ [1/L]
+        Y(8) - E- [1/L]
+        Y(9) - Ex [1/L]
+        Y(10) - L [L]
+
+        Returns
+        -------
+        returns FoM, FoMp, and dFoM
+
+        '''
+        y = self.y # grab adjoint solutions
+        
+        uarray = np.array([k0**2, k0**2, k0**2,
+                           1.0, 1.0, 1.0,
+                           1.0/k0**2, 1.0/k0**2, 1.0/k0**2, 
+                           k0**2]) # array of units for multiplication of stuff
+            
+        FoM = np.sum((y[:-1,index] - y[:-1,0])**2*uarray)/2.0
+        FoMp = np.array([FoM])  
+        
+        dFoM = np.array([]) # empty array for no purpose but placeholder in return method     
+            
+        return FoM, FoMp, dFoM
 
     def GetDF(self):
         '''
@@ -627,18 +663,18 @@ class OptimizationUtility:
             anNew, mom = self.restFunc(mom, anNew)
         mom.UpdateLattice( params = self.getParamObj(anNew,pmapping) )
         mom.Run()         
-        ftmp,fptmp,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
+        ftmp,fptmp,_ = mom.GetFoM_And_DFoM_Periodic() ###################### FOM call here
         return mom, anNew, ftmp, fptmp    
 
     def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000):
         # run moments and adjoint equations
         print('Running Mom. Eqn.')
         mom.Run()
-        mom.RunAdjoint(useMatchFoM=True) ###################### FOM call here. If using new FoM, go into this function and update in there
+        mom.RunAdjoint(usePeriodicFoM=True) ###################### FOM call here. If using new FoM, go into this function and update in there
 
         # get FoM
         print('Starting Opt.')
-        f0,f0p,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
+        f0,f0p,_ = mom.GetFoM_And_DFoM_Periodic() ###################### FOM call here
         df0 = mom.GetDF()
         gamma = f0 / np.sum( df0**2 )
         print('Starting FoM: ' + str(f0))
@@ -754,8 +790,8 @@ class PlottingUtility:
         xr = np.sqrt(momObj.y[0,:] + momObj.y[1,:]) * 1e3 #  <x^2> = Q+ + Q-
         yr = np.sqrt(momObj.y[0,:] - momObj.y[1,:]) * 1e3 #  <y^2> = Q+ - Q-
         plt.figure(figsize=(6,4))
-        plt.plot(momObj.z, xr, label='$<x>$')
-        plt.plot(momObj.z, yr, label='$<y>$')
+        plt.plot(momObj.z, xr, label=r'$\sqrt{\langle x^2 \rangle}$')
+        plt.plot(momObj.z, yr, '--', label=r'$\sqrt{\langle y^2 \rangle}$')
 
         sfquad = xr[0] * 0.25 / np.max(momObj.kquad)
         try:
