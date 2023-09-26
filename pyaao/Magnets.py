@@ -1,3 +1,7 @@
+#
+# This file contains a definition of magnet types for the adjoint code. Right now we have quadrupoles and solenoids
+#
+
 class QuadProfile:
 
     def __init__(self, func, sf=1.0, hardedge=True):

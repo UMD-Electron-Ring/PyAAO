@@ -1,8 +1,7 @@
-import sys
-sys.path.append('..')
-from bindings.adjointFTRBindings import *
+from adjointFTRBindings import *
 import numpy as np
 import copy 
+import matplotlib.pyplot as plt
 
 class MomentSolver:
     '''
@@ -39,7 +38,6 @@ class MomentSolver:
         '''
         return starting conditions for the moment equations (based off Santiago's values)
         can be updated whenever.
-
         These represent the initial conditions of the beam for the simulations.
         If we wanted to change the starting beam size/emittance, we do it here.
         '''
@@ -100,7 +98,6 @@ class MomentSolver:
         dP/dz = E + O * Q
         dE/dz = O * P + N*L
         dL/dz = -N * Q
-
         See notes 1_14_21 page 3
         '''
 
@@ -124,7 +121,6 @@ class MomentSolver:
         '''
         Run the adjoint moment equations backwards
         Similar to just running the regular moment equations forward
-
         See notes 1_14_21 page 12, middle of page set of equations
         '''
 
@@ -160,7 +156,6 @@ class MomentSolver:
         Y(8) - E-
         Y(9) - Ex
         Y(10) - L
-
         See notes 1_14_21 page 3
         '''
 
@@ -202,7 +197,6 @@ class MomentSolver:
         Main function to solve the adjoint equations (backwards)
         
         Here we have the original 11 moments + the 11 adjoint moments for a total of a 22 variable ode solve
-
         See notes 1_14_21 page 12, middle of page set of equations
         '''
         Y = Yt[0:11] # adjoint variables
@@ -266,7 +260,6 @@ class MomentSolver:
     def GetCOM(self, y):
         '''
         Calculate the constant of motion
-
         This parameter is just a check to see if the equations are getting calculated correctly.
         If this value is not constant vs time, something is wrong.
         
@@ -380,7 +373,6 @@ class MomentSolver:
     def GetDF(self):
         '''
         Calculate Omat,Nmat perturbation matrices
-
         See notes 1_14_21 page 16, In order to calculate the intergral, we need to find O,N perturbation matrices.
         I.e. if I perturb a magnet, how much does O & N matrices change.
         '''
@@ -428,7 +420,6 @@ class MomentSolver:
     def CalcInt(self, Omat, Nmat):
         '''
         Calculate adjoint integral
-
         See notes 1_14_21 page 16
         '''
         int1 = np.zeros(len(self.z))
@@ -453,6 +444,7 @@ class MomentSolver:
         Nicely print out lattice parameters
         '''
         pass
+
 class MomentSolverUtility:
     '''
     Helper class with some utilities used within the MomentSolver class.
@@ -586,22 +578,19 @@ class MomentSolverUtility:
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])
     
     # initial beam conditions from moments (usually given from Warp)
-    def GetInitialConditionsFromWarp(self, x2, xp2, y2, yp2, xy, xxp, yyp, xyp, yxp, xpyp):
-        Q_plus = 0.5*(x2 + y2)
-        Q_minus = 0.5*(x2 - y2)
+    def GetInitialConditionsFromWarp(self, xsq, xprimesq, ysq, yprimesq, xy, xxprime, yyprime, xyprime, yxprime, xprimeyprime):
+        Q_plus = 0.5*(xsq + ysq)
+        Q_minus = 0.5*(xsq - ysq)
         Q_x = xy
-        P_plus = xxp + yyp
-        P_minus = xxp - yyp
-        P_x = yxp + xyp
-        E_plus = xp2 + yp2
-        E_minus = xp2 - yp2
-        E_x = 2.0 * xpyp
-        L = xyp - yxp
+        P_plus = xxprime + yyprime
+        P_minus = xxprime - yyprime
+        P_x = yxprime + xyprime
+        E_plus = xprimesq + yprimesq
+        E_minus = xprimesq - yprimesq
+        E_x = 2.0 * xprimeyprime
+        L = xyprime - yxprime
         phi = 0
         return np.array([Q_plus,Q_minus,Q_x,P_plus,P_minus,P_x,E_plus,E_minus,E_x,L,phi])        
-
-    def printLatticeInfo(self, lattice):
-        pass
 
 class OptimizationUtility:
     '''
@@ -638,18 +627,18 @@ class OptimizationUtility:
             anNew, mom = self.restFunc(mom, anNew)
         mom.UpdateLattice( params = self.getParamObj(anNew,pmapping) )
         mom.Run()         
-        ftmp,fptmp,_ = mom.GetFoM_And_DFoM()
+        ftmp,fptmp,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
         return mom, anNew, ftmp, fptmp    
 
     def runOptimization(self, mom: MomentSolver, params0, paramMapping, maxSteps=50000):
         # run moments and adjoint equations
         print('Running Mom. Eqn.')
         mom.Run()
-        mom.RunAdjoint(useMatchFoM=False)
+        mom.RunAdjoint(useMatchFoM=True) ###################### FOM call here. If using new FoM, go into this function and update in there
 
         # get FoM
         print('Starting Opt.')
-        f0,f0p,_ = mom.GetFoM_And_DFoM()
+        f0,f0p,_ = mom.GetFoM_And_DFoM_Match() ###################### FOM call here
         df0 = mom.GetDF()
         gamma = f0 / np.sum( df0**2 )
         print('Starting FoM: ' + str(f0))
@@ -667,10 +656,8 @@ class OptimizationUtility:
         f_h.append(ftmp)
         fp_h.append(fptmp)
         print('FoM: ' + str(f_h[-1]))
-
         try:
-
-            # find the starting gamma value
+        # find the starting gamma value
             while f_h[-1] >= f0:
                 gamma_h.append( gamma_h[-1] / 2.0 )
                 mom, antmp, ftmp, fptmp = self.takeStep(mom, an_h[0], gamma_h[-1], df_h[0], paramMapping)
@@ -679,7 +666,7 @@ class OptimizationUtility:
                 fp_h.append(fptmp)
                 print('FoM: ' + str(f_h[-1]))    
 
-        # main loop 
+            # main loop 
             while True:
 
                 # step
@@ -710,7 +697,7 @@ class OptimizationUtility:
                 # calculate adjoint
                 mom.UpdateLattice( params = self.getParamObj(an_h[-1],paramMapping) )
                 mom.Run()
-                mom.RunAdjoint(useMatchFoM=False)
+                mom.RunAdjoint(useMatchFoM=True)
 
                 # calculate df
                 df_h.append( mom.GetDF() )
@@ -747,4 +734,108 @@ class OptimizationUtility:
 
         # opt history
         return mom, an_h, gamma_h, f_h, fp_h, df_h  
-              
+
+class PlottingUtility:
+    '''
+    Helpful plots
+    '''
+
+    def __init__(self, momObj=None):
+        self.momObj = momObj
+
+    def PlotEnv(self, momObj=None, title=None):
+        '''
+        Plot beam envelope 
+        '''
+
+        if momObj is None:
+            momObj = self.momObj
+        
+        xr = np.sqrt(momObj.y[0,:] + momObj.y[1,:]) * 1e3 #  <x^2> = Q+ + Q-
+        yr = np.sqrt(momObj.y[0,:] - momObj.y[1,:]) * 1e3 #  <y^2> = Q+ - Q-
+        plt.figure(figsize=(6,4))
+        plt.plot(momObj.z, xr, label='$<x>$')
+        plt.plot(momObj.z, yr, label='$<y>$')
+
+        sfquad = xr[0] * 0.25 / np.max(momObj.kquad)
+        try:
+            sfsol = xr[0] * 0.25 / np.max(momObj.ksol)
+            plt.plot(momObj.z, momObj.ksol * sfsol, c='m') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
+        except:
+            pass
+        plt.plot(momObj.z, momObj.kquad * sfquad, c='k') # plot scaled magnet plots in the same plot so we know where the magnets are in the lattice
+        plt.xlabel('Z [m]')
+        plt.ylabel('Beam size [mm]')
+        plt.grid(True)
+        plt.title(title)
+        plt.legend()
+
+    def plotParams(self, params):
+        '''
+        Plot optimization parameters vs steps
+        '''
+
+        aa = np.zeros(( len(params),len(params[0]) ))
+        for i,param in enumerate(params):
+            aa[i,:] = param
+        
+        plt.figure()
+        plt.plot(aa)
+
+    def plotfom(self, fomh, fomph=None):
+        '''
+        Plot optimization parameters vs steps
+        '''
+
+        ff = np.zeros(( len(fomh),1 ))
+        for i,val in enumerate(fomh):
+            ff[i,:] = val
+        
+        plt.figure()
+        plt.plot(np.log10(ff),label='FoM')
+
+        if fomph is not None:
+            ff = np.zeros(( len(fomph),len(fomph[0]) ))
+            for i,val in enumerate(fomph):
+                ff[i,:] = val
+            plt.plot(np.log10(ff),label='FoMp')
+
+    def printParameters(self, momObj=None, params=None):
+        '''
+        Print optimization parameters
+        '''
+
+        if momObj is None:
+            momObj = self.momObj
+        if params is None:
+            params = momObj.optParams        
+
+    def printLattice(self, momObj=None, lattice=None):
+        '''
+        Print lattice
+        '''
+
+        try:
+            from tabulate import tabulate
+        except:
+            print('Please install the tabulate package for this function')
+            return
+        
+        if momObj is None:
+            momObj = self.momObj
+        if lattice is None:
+            lattice = momObj.lattice
+
+        table = []
+        for elem in lattice:
+            entry = [
+                elem['type'],
+                elem['zstart'],
+                (elem['zstart'] + elem['zend']) * 0.5,
+                elem['zend'],
+                elem['dbdx'].GetValue(0),
+                elem['rotation']
+            ]
+            table.append(entry)
+
+        print(tabulate(table , headers=["Element", 'zStart [m]', 'zCenter [m]', 'zEnd [m]', 'dB/dx [T/m]', 'angle [rad]']))

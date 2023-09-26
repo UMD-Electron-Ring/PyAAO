@@ -1,5 +1,5 @@
 import numpy as np
-from momentSolver.Magnets import QuadProfile, SolenoidProfile
+from Magnets import QuadProfile, SolenoidProfile
 
 ###################################
 # quad profile settings

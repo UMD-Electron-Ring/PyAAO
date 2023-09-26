@@ -1,6 +1,9 @@
 
 set( PROJECT_FOLDER ${PROJECT_FOLDER}/AdjointFTR )
 
+project("AdjointFTR")
+cmake_minimum_required(VERSION 3.22)
+
 set( target AdjointFTR )
 
 set( headers 

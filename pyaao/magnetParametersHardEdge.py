@@ -1,5 +1,5 @@
 import numpy as np
-from momentSolver.Magnets import QuadProfile, SolenoidProfile
+from Magnets import QuadProfile, SolenoidProfile
 
 ###################################
 # quad profile settings
@@ -8,6 +8,7 @@ q1match = -0.037913 # T / m
 q2match = 0.047133 # T /m
 q3match = -0.028188 # T / m
 q4match = -0.010840 # T / m
+q1match,q2match,q3match,q4match = 0,0,0,0
 q1dbdx = -0.017229 # T / m
 q2dbdx = 0.020904 # T / m
 q3dbdx = -0.017229 # T / m
@@ -63,44 +64,6 @@ quad['zend'] = quad['zstart'] + quad['length']
 quad['rotation'] = 0.0 # rotation angle of the quadrupole in radians
 quad['dbdx'] = QuadProfile( lambda s : q4match ) # field profile function of the quadrupole , hard edge, so no dependence on position
 lattice.append(quad)
-
-# setup FTR section
-# Quad settings
-quad = {}
-quad['type'] = 'quad' # what type of magnet is this
-quad['zstart'] = q1start
-quad['length'] = leff # length of the quadrupole
-quad['zend'] = quad['zstart'] + quad['length']
-quad['rotation'] = 45*np.pi/180 # rotation angle of the quadrupole in radians
-quad['dbdx'] = QuadProfile( lambda s : q1dbdx ) # field profile function of the quadrupole , hard edge, so no dependence on position
-lattice.append(quad)
-
-quad = {}
-quad['type'] = 'quad'
-quad['zstart'] = q2start
-quad['length'] = leff
-quad['zend'] = quad['zstart'] + quad['length']
-quad['rotation'] = 45*np.pi/180
-quad['dbdx'] = QuadProfile( lambda s : q2dbdx )
-lattice.append(quad)
-
-quad = {}
-quad['type'] = 'quad'
-quad['zstart'] = q3start
-quad['length'] = leff
-quad['zend'] = quad['zstart'] + quad['length']
-quad['rotation'] = 45*np.pi/180
-quad['dbdx'] = QuadProfile( lambda s : q3dbdx )
-lattice.append(quad)
-
-sol = {}
-sol['type'] = 'solenoid'
-sol['zstart'] = solstart
-sol['length'] = leffSolenoid # m
-sol['zend'] = sol['zstart'] + sol['length']
-sol['rotation'] = 0.0 # doesn't do anything
-sol['dbdx'] = SolenoidProfile( lambda s,I : soldb )
-lattice.append(sol)
 
 lattice = np.array(lattice)
 ###################################

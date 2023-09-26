@@ -47,5 +47,6 @@ quad4['zend'] = quad4['zstart'] + quad4['length']
 quad4['rotation'] = 0.0
 quad4['dbdx'] = QuadProfile( lambda s : g0 * np.exp(-1 * (s-s0)**2 / d**2 ) )
 
-lattice = np.array([ quad1, quad2, quad3, quad4 ])
+# build your lattice, in this case only use 3 quads
+lattice = np.array([ quad1, quad2, quad3 ])
 ###################################
