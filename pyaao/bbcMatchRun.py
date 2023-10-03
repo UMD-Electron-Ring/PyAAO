@@ -39,6 +39,10 @@ mom = MomentSolver(
 # run the moment equations over the given distance
 mom.Run(verbose=True)
 
+plt.close("all")
+
+%matplotlib qt
+
 # plot results
 pu.PlotEnv(mom)
 plt.show()
