@@ -49,6 +49,7 @@ class SolenoidProfile:
         return self.__repr()      
 
     def GetValue(self, x):
+        # return ( self.func(x, self.sf) ) # value used for old Moment opt.
         return ( self.func(x) * self.sf )
 
     def SetScaleFactor(self, sf):
