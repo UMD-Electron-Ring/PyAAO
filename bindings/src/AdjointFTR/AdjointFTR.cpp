@@ -18,7 +18,7 @@ namespace FTR
 
 	}
 
-	double* AdjointFTR::GetONmats(double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
+	void AdjointFTR::GetONmats(double* output, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
 	{
 		double cq = cos(2.0 * Y10 - 2.0 * kQuadRot);
 		double sq = sin(2.0 * Y10 - 2.0 * kQuadRot);
@@ -49,27 +49,23 @@ namespace FTR
 			pipeConstant = 0;
 		}
 
-		double* onmats = new double[12];
-		onmats[0] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[0];
-		onmats[1] = 2.0 * kQuad * cq + ca_ab4 * kPerv + omatPipeConstantTerm[1];
-		onmats[2] = -2.0 * kQuad * sq + sa_ab4 * kPerv + omatPipeConstantTerm[2];
-		onmats[3] = 2.0 * kQuad * cq + ca_ab4 * kPerv + omatPipeConstantTerm[3];
-		onmats[4] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[4];
-		onmats[5] = 0.0 + omatPipeConstantTerm[5];
-		onmats[6] = -2.0 * kQuad * sq + sa_ab4 * kPerv + omatPipeConstantTerm[6];
-		onmats[7] = 0.0 + omatPipeConstantTerm[7];
-		onmats[8] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[8];
+		output[0] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[0];
+		output[1] = 2.0 * kQuad * cq + ca_ab4 * kPerv + omatPipeConstantTerm[1];
+		output[2] = -2.0 * kQuad * sq + sa_ab4 * kPerv + omatPipeConstantTerm[2];
+		output[3] = 2.0 * kQuad * cq + ca_ab4 * kPerv + omatPipeConstantTerm[3];
+		output[4] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[4];
+		output[5] = 0.0 + omatPipeConstantTerm[5];
+		output[6] = -2.0 * kQuad * sq + sa_ab4 * kPerv + omatPipeConstantTerm[6];
+		output[7] = 0.0 + omatPipeConstantTerm[7];
+		output[8] = -1 * (kSol * kSol) / 2.0 + ab4 * kPerv + omatPipeConstantTerm[8];
 
-		onmats[9] = 0.0 - omatPipeConstantTerm[9];
-		onmats[10] = 2.0 * kQuad * sq - sa_ab4 * kPerv - omatPipeConstantTerm[10];
-		onmats[11] = 2.0 * kQuad * cq + ca_ab4 * kPerv - omatPipeConstantTerm[11];
-
-		return onmats;
+		output[9] = 0.0 - omatPipeConstantTerm[9];
+		output[10] = 2.0 * kQuad * sq - sa_ab4 * kPerv - omatPipeConstantTerm[10];
+		output[11] = 2.0 * kQuad * cq + ca_ab4 * kPerv - omatPipeConstantTerm[11];
 	}
 
-	double* AdjointFTR::GetSCVM(double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
+	void AdjointFTR::GetSCVM(double* output, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
 	{
-		double* svcm = new double[27];
 		int svcmCC = 0;
 
 		// calculate predefined variables
@@ -122,11 +118,11 @@ namespace FTR
 		W2[1] = V2_c * (Y1 * Y0);			// W2_c = V2_c
 		W2[2] = V2_c * (Y2 * Y0);			// W2_c = V2_c
 		W3[0] = V3_c * Y1;					// W3_c = V3_c
-		W3[1] = V3_c * Y0;					// W3_c = V3_c 
+		W3[1] = V3_c * Y0;					// W3_c = V3_c
 		W3[2] = 0.0;
-		W4[0] = V3_c * Y2;					// W4_c = V3_c 
-		W4[1] = 0.0;						// W4_c = V3_c 
-		W4[2] = V3_c * Y0;					// W4_c = V3_c 
+		W4[0] = V3_c * Y2;					// W4_c = V3_c
+		W4[1] = 0.0;						// W4_c = V3_c
+		W4[2] = V3_c * Y0;					// W4_c = V3_c
 
 		// X vectors
 		double X1[3] = {}; double X2[3] = {}; double X3[3] = {}; double X4[3] = {};
@@ -151,7 +147,7 @@ namespace FTR
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				svcm[svcmCC] = W1[i] * U1[j] + W2[i] * U2[j] + W3[i] * U3[j] + W4[i] * U4[j];
+				output[svcmCC] = W1[i] * U1[j] + W2[i] * U2[j] + W3[i] * U3[j] + W4[i] * U4[j];
 				svcmCC++;
 			}
 		}
@@ -159,7 +155,7 @@ namespace FTR
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				svcm[svcmCC] = V1[i] * U1[j] + V2[i] * U2[j] + V3[i] * U3[j] + V4[i] * U4[j];
+				output[svcmCC] = V1[i] * U1[j] + V2[i] * U2[j] + V3[i] * U3[j] + V4[i] * U4[j];
 				svcmCC++;
 			}
 		}
@@ -167,12 +163,10 @@ namespace FTR
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				svcm[svcmCC] = X1[i] * U1[j] + X2[i] * U2[j] + X3[i] * U3[j] + X4[i] * U4[j];
+				output[svcmCC] = X1[i] * U1[j] + X2[i] * U2[j] + X3[i] * U3[j] + X4[i] * U4[j];
 				svcmCC++;
 			}
 		}
-
-		return svcm;
 	}
 }
 
@@ -187,15 +181,15 @@ extern "C"
 	{
 		delete adjointFTR;
 	}
-	double* AdjointFTR_getSCVM(FTR::AdjointFTR* adjointFTR, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
+	void AdjointFTR_getSCVM(FTR::AdjointFTR* adjointFTR, double* output, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
 	{
-		return adjointFTR->GetSCVM(kPerv, Y0, Y1, Y2, Y3, Y4, Y5);
+		adjointFTR->GetSCVM(output, kPerv, Y0, Y1, Y2, Y3, Y4, Y5);
 	}
-	double* AdjointFTR_getONmats(FTR::AdjointFTR* adjointFTR, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
+	void AdjointFTR_getONmats(FTR::AdjointFTR* adjointFTR, double* output, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
 	{
-		return adjointFTR->GetONmats(kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
+		adjointFTR->GetONmats(output, kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
 	}
-#else // windows	
+#else // windows
 	__declspec(dllexport) FTR::AdjointFTR* AdjointFTR_new()
 	{
 		return new FTR::AdjointFTR();
@@ -204,13 +198,13 @@ extern "C"
 	{
 		delete adjointFTR;
 	}
-	__declspec(dllexport) double* AdjointFTR_getSCVM(FTR::AdjointFTR* adjointFTR, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
+	__declspec(dllexport) void AdjointFTR_getSCVM(FTR::AdjointFTR* adjointFTR, double* output, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5)
 	{
-		return adjointFTR->GetSCVM(kPerv, Y0, Y1, Y2, Y3, Y4, Y5);
+		adjointFTR->GetSCVM(output, kPerv, Y0, Y1, Y2, Y3, Y4, Y5);
 	}
-	__declspec(dllexport) double* AdjointFTR_getONmats(FTR::AdjointFTR* adjointFTR, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
+	__declspec(dllexport) void AdjointFTR_getONmats(FTR::AdjointFTR* adjointFTR, double* output, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10)
 	{
-		return adjointFTR->GetONmats(kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
+		adjointFTR->GetONmats(output, kPerv, kSol, kQuad, kQuadRot, pipeRadius, Y0, Y1, Y2, Y10);
 	}
 #endif
 }

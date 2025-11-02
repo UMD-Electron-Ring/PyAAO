@@ -18,8 +18,8 @@ namespace FTR
 		AdjointFTR();
 		~AdjointFTR();
 
-		double* GetSCVM(double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5);
-		double* GetONmats(double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10);
+		void GetSCVM(double* output, double kPerv, double Y0, double Y1, double Y2, double Y3, double Y4, double Y5);
+		void GetONmats(double* output, double kPerv, double kSol, double kQuad, double kQuadRot, double pipeRadius, double Y0, double Y1, double Y2, double Y10);
 
 	private:
 
